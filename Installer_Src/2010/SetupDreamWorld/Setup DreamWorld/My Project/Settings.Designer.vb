@@ -788,13 +788,25 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("opensimrobust")>  _
-        Public Property RobustDatabase() As String
+         Global.System.Configuration.DefaultSettingValueAttribute("robust")>  _
+        Public Property RobustDbName() As String
             Get
-                Return CType(Me("RobustDatabase"),String)
+                Return CType(Me("RobustDbName"),String)
             End Get
             Set
-                Me("RobustDatabase") = value
+                Me("RobustDbName") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("opensimgrid")>  _
+        Public Property GridDbName() As String
+            Get
+                Return CType(Me("GridDbName"),String)
+            End Get
+            Set
+                Me("GridDbName") = value
             End Set
         End Property
     End Class

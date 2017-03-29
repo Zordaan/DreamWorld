@@ -29,6 +29,7 @@ Imports IniParser
 Imports System.Threading
 Imports Ionic.Zip
 Imports System.Timers
+Imports System.Diagnostics.Debug
 
 Public Class Form1
 
@@ -915,7 +916,7 @@ Public Class Form1
 
         Dim myDbHandle As String
         If My.Settings.RobustEnabled = True Then
-            myDbHandle = My.Settings.RobustDatabase
+            myDbHandle = My.Settings.RobustDbName
         Else
             myDbHandle = My.Settings.DBName
         End If

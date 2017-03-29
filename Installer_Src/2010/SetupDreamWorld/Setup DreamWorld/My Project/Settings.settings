@@ -185,8 +185,11 @@
     <Setting Name="RobustEnabled" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="RobustDatabase" Type="System.String" Scope="User">
-      <Value Profile="(Default)">opensimrobust</Value>
+    <Setting Name="RobustDbName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">robust</Value>
+    </Setting>
+    <Setting Name="GridDbName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">opensimgrid</Value>
     </Setting>
   </Settings>
 </SettingsFile>
