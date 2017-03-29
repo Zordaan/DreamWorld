@@ -773,6 +773,30 @@ Namespace My
                 Me("WelcomeRegion") = value
             End Set
         End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("False")>  _
+        Public Property RobustEnabled() As Boolean
+            Get
+                Return CType(Me("RobustEnabled"),Boolean)
+            End Get
+            Set
+                Me("RobustEnabled") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("opensimrobust")>  _
+        Public Property RobustDatabase() As String
+            Get
+                Return CType(Me("RobustDatabase"),String)
+            End Get
+            Set
+                Me("RobustDatabase") = value
+            End Set
+        End Property
     End Class
 End Namespace
 

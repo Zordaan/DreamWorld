@@ -182,5 +182,11 @@
     <Setting Name="WelcomeRegion" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
+    <Setting Name="RobustEnabled" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="RobustDatabase" Type="System.String" Scope="User">
+      <Value Profile="(Default)">opensimrobust</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

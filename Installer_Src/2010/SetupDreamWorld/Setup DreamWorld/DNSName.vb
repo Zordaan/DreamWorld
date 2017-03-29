@@ -25,11 +25,9 @@ Public Class DNSName
 
     End Sub
 
-
     Private Sub TextBox1_LostFocus(sender As Object, e As EventArgs) Handles TextBox1.LostFocus
 
         If TextBox1.Text <> String.Empty Then
-
             TextBox1.Text = TextBox1.Text.Replace("http://", "")
             TextBox1.Text = TextBox1.Text.Replace("https://", "")
 
@@ -62,7 +60,7 @@ Public Class DNSName
             If IPAddress.TryParse(IP, address) Then
                 My.Settings.DnsName = TextBox1.Text
                 My.Settings.Save()
-                Form1.ActualForm.DnsName.Text = TextBox1.Text
+                Expert.DnsName.Text = TextBox1.Text
                 Me.Close()
             End If
             My.Settings.DnsName = TextBox1.Text
@@ -70,7 +68,7 @@ Public Class DNSName
         Else
             My.Settings.DnsName = TextBox1.Text
             My.Settings.Save()
-            Form1.ActualForm.DnsName.Text = TextBox1.Text
+            Expert.DnsName.Text = TextBox1.Text
             Me.Close()
         End If
 

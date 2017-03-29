@@ -39,7 +39,7 @@ Public Class Form1
 
 #Region "Declarations"
 
-    Dim MyVersion As String = "1.63"
+    Dim MyVersion As String = "1.64"
     Dim DebugPath As String = "C:\Opensim\Outworldz Test" ' Note that this uses spaces
     Public Domain As String = "http://www.outworldz.com"
     Dim RevNotesFile As String = "Update_Notes_" + MyVersion + ".rtf"
@@ -913,10 +913,17 @@ Public Class Form1
                 SetIni("Startup", "UseSeparatePhysicsThread", "true")
         End Select
 
+        Dim myDbHandle As String
+        If My.Settings.RobustEnabled = True Then
+            myDbHandle = My.Settings.RobustDatabase
+        Else
+            myDbHandle = My.Settings.DBName
+        End If
+
         ' set MySql
         Dim ConnectionString = """" _
             + "Data Source=" + My.Settings.DBSource _
-            + ";Database=" + My.Settings.DBName _
+            + ";Database=" + myDbHandle _
             + ";Port=" + My.Settings.MySqlPort _
             + ";User ID=" + My.Settings.DBUserID _
             + ";Password=" + My.Settings.DBPassword _
