@@ -732,7 +732,6 @@ Public Class Form1
         End If
 
         Try
-
             ' add this sim name as a default to the file as HG regions, and add the other regions as fallback
             Dim DefaultName = aRegion(My.Settings.WelcomeRegion + 1).RegionName
             '(replace spaces with underscore)
@@ -763,16 +762,17 @@ Public Class Form1
             End Using
             'close your reader
             reader.Close()
-        Catch
-            MsgBox("There are no region files! There must be at least one region")
+            Try
+                My.Computer.FileSystem.DeleteFile(prefix + INIname)
+                My.Computer.FileSystem.RenameFile(prefix + "File.tmp", INIname)
+            Catch ex As Exception
+                Log("Error:SetDefault sims could not rename the file:" + ex.Message)
+            End Try
+
+        Catch ex As Exception
+            MsgBox("Warn:Cound not set default sim for visitors. " + ex.Message)
         End Try
 
-        Try
-            My.Computer.FileSystem.DeleteFile(prefix + INIname)
-            My.Computer.FileSystem.RenameFile(prefix + "File.tmp", INIname)
-        Catch ex As Exception
-            Log("Error:SetDefault sims could not rename the file:" + ex.Message)
-        End Try
 
     End Sub
 
@@ -803,8 +803,28 @@ Public Class Form1
         Else
             Log("Info:Avatar will not be visible")
         End If
+
+
+        ' set Database connection string
+
+        Dim myDbHandle As String
+        If My.Settings.RobustEnabled = True Then
+            myDbHandle = My.Settings.RobustDbName
+        Else
+            myDbHandle = My.Settings.DBName
+        End If
+
+        Dim ConnectionString = """" _
+            + "Data Source=" + My.Settings.DBSource _
+            + ";Database=" + myDbHandle _
+            + ";Port=" + My.Settings.MySqlPort _
+            + ";User ID=" + My.Settings.DBUserID _
+            + ";Password=" + My.Settings.DBPassword _
+            + ";Old Guids=True;Allow Zero Datetime=True;" _
+            + """"
+
         ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-        ' set the defaults in the INI for the viewer to use. Painful to do as its a Left hand side edit 
+        ' set the defaults in the INI for the viewer to use. Painful to do as it's a Left hand side edit 
 
         SetDefaultSims()
 
@@ -848,7 +868,28 @@ Public Class Form1
             SetIni("Map", "RenderMeshes", "true")
         End If
 
+        If Not My.Settings.RobustEnabled Then
+            If My.Settings.GridFolder = "Opensim-0.9" Then
+                SetIni("Architecture", "Include-Architecture", "config-include/StandaloneHypergrid.ini")
+            Else
+                SetIni("Architecture", "Include-Architecture", "config-include/DivaPreferences.ini")
+            End If
+        Else
+            If My.Settings.GridFolder = "Opensim-0.9" Then
+                SetIni("Architecture", "Include-Architecture", "config-include/GridHypergrid.ini")
+            Else
+                SetIni("Architecture", "Include-Architecture", "config-include/GridHypergrid.ini")
+            End If
+        End If
 
+
+        SaveINI()
+        ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+        'Gridcommon
+
+        LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config-include\Gridcommon.ini", ";")
+        SetIni("DatabaseService", "ConnectionString", ConnectionString)
         SaveINI()
         ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
@@ -914,22 +955,7 @@ Public Class Form1
                 SetIni("Startup", "UseSeparatePhysicsThread", "true")
         End Select
 
-        Dim myDbHandle As String
-        If My.Settings.RobustEnabled = True Then
-            myDbHandle = My.Settings.RobustDbName
-        Else
-            myDbHandle = My.Settings.DBName
-        End If
 
-        ' set MySql
-        Dim ConnectionString = """" _
-            + "Data Source=" + My.Settings.DBSource _
-            + ";Database=" + myDbHandle _
-            + ";Port=" + My.Settings.MySqlPort _
-            + ";User ID=" + My.Settings.DBUserID _
-            + ";Password=" + My.Settings.DBPassword _
-            + ";Old Guids=True;Allow Zero Datetime=True;" _
-            + """"
 
         SetIni("DatabaseService", "ConnectionString", ConnectionString)
 
