@@ -868,29 +868,52 @@ Public Class Form1
             SetIni("Map", "RenderMeshes", "true")
         End If
 
-        If Not My.Settings.RobustEnabled Then
+        If My.Settings.RobustEnabled Then
+            If My.Settings.GridFolder = "Opensim-0.9" Then
+                SetIni("Architecture", "Include-Architecture", "config-include/GridHypergrid.ini")
+            End If
+        Else
             If My.Settings.GridFolder = "Opensim-0.9" Then
                 SetIni("Architecture", "Include-Architecture", "config-include/StandaloneHypergrid.ini")
             Else
                 SetIni("Architecture", "Include-Architecture", "config-include/DivaPreferences.ini")
             End If
-        Else
-            If My.Settings.GridFolder = "Opensim-0.9" Then
-                SetIni("Architecture", "Include-Architecture", "config-include/GridHypergrid.ini")
-            Else
-                SetIni("Architecture", "Include-Architecture", "config-include/GridHypergrid.ini")
-            End If
+
         End If
 
-
         SaveINI()
+
+        ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        'Gloebits.ini
+
+        LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\Gloebit.ini", ";")
+        If My.Settings.GloebitsEnable Then
+            SetIni("Gloebit", "enabled", "true")
+        Else
+            SetIni("Gloebit", "enabled", "true")
+        End If
+
+        If My.Settings.GloebitsMode Then
+            SetIni("Gloebit", "GLBEnvironment", "production")
+        Else
+            SetIni("Gloebit", "GLBEnvironment", "sandbox")
+        End If
+
+        SetIni("Gloebit", "GLBKey", My.Settings.OAuthKey)
+        SetIni("Gloebit", "GLBSecret", My.Settings.OAuthSecret)
+        SetIni("Gloebit", "GLBOwnerName", My.Settings.GLBOwnerName)
+        SetIni("Gloebit", "GLBOwnerEmail", My.Settings.GLBOwnerEmail)
+
         ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
         'Gridcommon
 
-        LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config-include\Gridcommon.ini", ";")
-        SetIni("DatabaseService", "ConnectionString", ConnectionString)
-        SaveINI()
+        If My.Settings.GridFolder = "Opensim-0.9" Then
+            LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config-include\Gridcommon.ini", ";")
+            SetIni("DatabaseService", "ConnectionString", ConnectionString)
+            SaveINI()
+        End If
+
         ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 
@@ -1927,7 +1950,7 @@ Public Class Form1
             End Try
             End ' quit program
         Else
-            Print("Uh Oh!  The files I need could not be found online. The gnomes have absconded with them!   Please check later.")
+            Print("Uh Oh!  The files I need could not be found online. The gnomes have absconded with them! Please check later.")
             UpdaterGo.Visible = False
             UpdaterGo.Enabled = True
         End If

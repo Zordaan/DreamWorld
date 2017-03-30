@@ -20,11 +20,12 @@ Public Class Expert
 
         'passwords are asterisks
         Password.UseSystemPasswordChar = True
-        DbPassword.UseSystemPasswordChar = True
+        DbPasswordTextBox.UseSystemPasswordChar = True
         SmtpPassword.UseSystemPasswordChar = True
+        RobustPasswordTextBox.UseSystemPasswordChar = True
 
         ' ports
-        DbPort.Text = My.Settings.MySqlPort
+        SimPortTextBox.Text = My.Settings.MySqlPort
         Password.Text = My.Settings.Password
         AdminLast.Text = My.Settings.AdminLast
         AdminFirst.Text = My.Settings.AdminFirst
@@ -42,14 +43,14 @@ Public Class Expert
         SmtpUsername.Text = My.Settings.SmtpUsername
 
         'Database Names
-        DbConnection.Text = My.Settings.DBSource
+        SimConnectionTextbox.Text = My.Settings.DBSource
         StandaloneDbName.Text = My.Settings.DBName
         FullGridName.Text = My.Settings.GridDbName
         RobustDbName.Text = My.Settings.RobustDbName
 
         'User Names for db
-        DbUsername.Text = My.Settings.DBUserID
-        DbPassword.Text = My.Settings.DBPassword
+        StandloneUsernameTextBox.Text = My.Settings.DBUserID
+        DbPasswordTextBox.Text = My.Settings.DBPassword
         SplashPage.Text = My.Settings.SplashPage
 
         ' physics engines differ between 0.8.2.1 and 0.9.1
@@ -79,9 +80,11 @@ Public Class Expert
         ' Grid
         If My.Settings.GridFolder = "Opensim" Then
             V8Button.Checked = True
+            V9Button.Checked = False
             Form1.Log("Info:0.8.2.1 enabled")
         Else
             V9Button.Checked = True
+            V8Button.Checked = False
             Form1.Log("Info:0.9.1 enabled")
         End If
 
@@ -90,6 +93,14 @@ Public Class Expert
 
         FullgridButton.Checked = My.Settings.RobustEnabled
         StandaloneButton.Checked = Not My.Settings.RobustEnabled
+
+        RobustPasswordTextBox.Text = My.Settings.RobustPassword
+        RobustConnectionTextBox.Text = My.Settings.RobustDbConnection
+        RobustUsernameTextBox.Text = My.Settings.RobustUsername
+        RobustDbName.Text = My.Settings.RobustDbName
+        RobustDbPortTextbox.Text = My.Settings.RobustDbPort
+
+        ChangeGridGray()
 
     End Sub
 #End Region
@@ -249,41 +260,36 @@ Public Class Expert
 #Region "V8/V9 Buttons"
 
     Private Sub V9Button_CheckedChanged(sender As Object, e As EventArgs) Handles V9Button.CheckedChanged
-        My.Settings.GridFolder = "Opensim-0.9"
-        My.Settings.Save()
-        Try
-            My.Computer.FileSystem.RenameFile(Form1.MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\Regions\RegionConfig.ini", "Outworldz.ini")
-        Catch ex As Exception
-        End Try
-        Form1.ViewWebUI.Visible = False
-        Web.Enabled = False
+
+        If V9Button.Checked Then
+            V8Button.Checked = False
+            My.Settings.GridFolder = "Opensim-0.9"
+            My.Settings.Save()
+            Try
+                My.Computer.FileSystem.RenameFile(Form1.MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\Regions\RegionConfig.ini", "Outworldz.ini")
+            Catch ex As Exception
+            End Try
+            Form1.ViewWebUI.Visible = False
+            Web.Enabled = False
+        End If
     End Sub
 
     Private Sub V8Button_CheckedChanged(sender As Object, e As EventArgs) Handles V8Button.CheckedChanged
-        My.Settings.GridFolder = "Opensim"
-        My.Settings.Save()
-        Try
-            My.Computer.FileSystem.RenameFile(Form1.MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\Regions\RegionConfig.ini", "Outworldz.ini")
-        Catch ex As Exception
-        End Try
-        Form1.ViewWebUI.Visible = True
-        Web.Enabled = True
+        If V8Button.Checked Then
+            V9Button.Checked = False
+            My.Settings.GridFolder = "Opensim"
+            My.Settings.Save()
+            Try
+                My.Computer.FileSystem.RenameFile(Form1.MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\Regions\RegionConfig.ini", "Outworldz.ini")
+            Catch ex As Exception
+            End Try
+            Form1.ViewWebUI.Visible = True
+            Web.Enabled = True
+        End If
     End Sub
 
-
-
     Private Sub StandaloneButton_CheckedChanged(sender As Object, e As EventArgs) Handles StandaloneButton.CheckedChanged
-        If StandaloneButton.Checked = True Then
-            FullgridButton.Checked = False
-
-            RobustDbName.Enabled = False
-            StandaloneDbName.Enabled = True
-            FullGridName.Enabled = False
-        Else
-            FullGridName.Enabled = True
-            RobustDbName.Enabled = True
-            StandaloneDbName.Enabled = False
-        End If
+        ChangeGridGray()
     End Sub
     Private Sub Fullgrid_CheckedChanged(sender As Object, e As EventArgs) Handles FullgridButton.CheckedChanged
         If FullgridButton.Checked = True Then
@@ -299,6 +305,15 @@ Public Class Expert
         End If
     End Sub
 
+    Private Sub ChangeGridGray()
+        If StandaloneButton.Checked = True Then
+            StandaloneGroup.Enabled = True
+            GridGroup.Enabled = False
+        Else
+            StandaloneGroup.Enabled = False
+            GridGroup.Enabled = True
+        End If
+    End Sub
 #End Region
 
 #Region "DNS"
@@ -337,8 +352,8 @@ Public Class Expert
 
 #Region "Database"
 
-    Private Sub DbPort_TextChanged_1(sender As Object, e As EventArgs) Handles DbPort.TextChanged
-        My.Settings.MySqlPort = DbPort.Text
+    Private Sub DbPort_TextChanged_1(sender As Object, e As EventArgs) Handles SimPortTextBox.TextChanged
+        My.Settings.MySqlPort = SimPortTextBox.Text
         My.Settings.Save()
     End Sub
     Private Sub DatabaseNameUser_TextChanged(sender As Object, e As EventArgs) Handles StandaloneDbName.TextChanged
@@ -346,27 +361,50 @@ Public Class Expert
         My.Settings.Save()
     End Sub
 
-    Private Sub DbConnection_TextChanged(sender As Object, e As EventArgs) Handles DbConnection.TextChanged
-        My.Settings.DBSource = DbConnection.Text
+    Private Sub DbConnection_TextChanged(sender As Object, e As EventArgs) Handles SimConnectionTextbox.TextChanged
+        My.Settings.DBSource = SimConnectionTextbox.Text
         My.Settings.Save()
     End Sub
 
-    Private Sub DbUsername_TextChanged(sender As Object, e As EventArgs) Handles DbUsername.TextChanged
-        My.Settings.DBUserID = DbUsername.Text
+    Private Sub DbUsername_TextChanged(sender As Object, e As EventArgs) Handles StandloneUsernameTextBox.TextChanged
+        My.Settings.DBUserID = StandloneUsernameTextBox.Text
         My.Settings.Save()
-
     End Sub
-    Private Sub DbPassword_click(sender As Object, e As EventArgs) Handles DbPassword.Click
-        DbPassword.UseSystemPasswordChar = False
+    Private Sub DbPassword_click(sender As Object, e As EventArgs) Handles DbPasswordTextBox.Click
+        DbPasswordTextBox.UseSystemPasswordChar = False
     End Sub
 
-    Private Sub DbPassword_TextChanged(sender As Object, e As EventArgs) Handles DbPassword.TextChanged
-        My.Settings.DBPassword = DbPassword.Text
+    Private Sub DbPassword_TextChanged(sender As Object, e As EventArgs) Handles DbPasswordTextBox.TextChanged
+        My.Settings.DBPassword = DbPasswordTextBox.Text
         My.Settings.Save()
     End Sub
 
     Private Sub TextBox1_TextChanged_1(sender As Object, e As EventArgs) Handles RobustDbName.TextChanged
         My.Settings.RobustDbName = RobustDbName.Text
+        My.Settings.Save()
+    End Sub
+
+    Private Sub RobustUsernameTextBox_TextChanged(sender As Object, e As EventArgs) Handles RobustUsernameTextBox.TextChanged
+        My.Settings.RobustUsername = RobustUsernameTextBox.Text
+        My.Settings.Save()
+    End Sub
+
+    Private Sub RobustConnectionTextBox_TextChanged(sender As Object, e As EventArgs) Handles RobustConnectionTextBox.TextChanged
+        My.Settings.RobustDbConnection = RobustConnectionTextBox.Text
+        My.Settings.Save()
+    End Sub
+
+    Private Sub RobustPasswordTextBox_TextChanged(sender As Object, e As EventArgs) Handles RobustPasswordTextBox.TextChanged
+        My.Settings.RobustPassword = RobustPasswordTextBox.Text
+        My.Settings.Save()
+    End Sub
+
+    Private Sub RobustPasswordClicked(sender As Object, e As EventArgs) Handles RobustPasswordTextBox.Click
+        RobustPasswordTextBox.UseSystemPasswordChar = False
+    End Sub
+
+    Private Sub RobustDbPortTextbox_TextChanged(sender As Object, e As EventArgs) Handles RobustDbPortTextbox.TextChanged
+        My.Settings.RobustDbPort = RobustDbPortTextbox.Text
         My.Settings.Save()
     End Sub
 

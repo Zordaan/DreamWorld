@@ -271,6 +271,16 @@ Public Class AdvancedForm
         End Try
     End Sub
 
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles GloebitsButton.Click
+        Dim Gloebits As New Gloebits
+        ' Set the new form's desktop location so it appears below and
+        ' to the right of the current form.
+        Gloebits.SetDesktopLocation(300, 200)
+        Gloebits.Activate()
+        Gloebits.Visible = True
+    End Sub
+
 #End Region
 
 #Region "Help"
@@ -308,6 +318,8 @@ Public Class AdvancedForm
         ActualForm.Visible = True
         Application.DoEvents()
     End Sub
+
+
 
 #End Region
 

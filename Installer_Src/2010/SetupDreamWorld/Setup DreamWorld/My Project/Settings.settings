@@ -191,5 +191,35 @@
     <Setting Name="GridDbName" Type="System.String" Scope="User">
       <Value Profile="(Default)">opensimgrid</Value>
     </Setting>
+    <Setting Name="GloebitsEnable" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="GloebitsMode" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="OAuthKey" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="OAuthSecret" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="GLBOwnerEmail" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Your Email</Value>
+    </Setting>
+    <Setting Name="GLBOwnerName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Your Avatar Name</Value>
+    </Setting>
+    <Setting Name="RobustDbConnection" Type="System.String" Scope="User">
+      <Value Profile="(Default)">localhost</Value>
+    </Setting>
+    <Setting Name="RobustUsername" Type="System.String" Scope="User">
+      <Value Profile="(Default)">opensimuser</Value>
+    </Setting>
+    <Setting Name="RobustPassword" Type="System.String" Scope="User">
+      <Value Profile="(Default)">opensimpassword</Value>
+    </Setting>
+    <Setting Name="RobustDbPort" Type="System.String" Scope="User">
+      <Value Profile="(Default)">3306</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

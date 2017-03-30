@@ -55,6 +55,7 @@ Partial Class AdvancedForm
         Me.AddRegion = New System.Windows.Forms.Button()
         Me.Label3 = New System.Windows.Forms.Label()
         Me.GroupBox2 = New System.Windows.Forms.GroupBox()
+        Me.GloebitsButton = New System.Windows.Forms.Button()
         Me.GroupBox3.SuspendLayout()
         CType(Me.PictureBox2, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox5.SuspendLayout()
@@ -85,7 +86,7 @@ Partial Class AdvancedForm
         'PictureBox2
         '
         Me.PictureBox2.Image = Global.Outworldz.My.Resources.Resources.about
-        Me.PictureBox2.Location = New System.Drawing.Point(123, -2)
+        Me.PictureBox2.Location = New System.Drawing.Point(135, 21)
         Me.PictureBox2.Name = "PictureBox2"
         Me.PictureBox2.Size = New System.Drawing.Size(28, 32)
         Me.PictureBox2.TabIndex = 1857
@@ -164,7 +165,7 @@ Partial Class AdvancedForm
         Me.GroupBox5.Controls.Add(Me.ChatSpeed)
         Me.GroupBox5.Location = New System.Drawing.Point(12, 162)
         Me.GroupBox5.Name = "GroupBox5"
-        Me.GroupBox5.Size = New System.Drawing.Size(182, 75)
+        Me.GroupBox5.Size = New System.Drawing.Size(182, 81)
         Me.GroupBox5.TabIndex = 22
         Me.GroupBox5.TabStop = False
         Me.GroupBox5.Text = "Personality"
@@ -172,7 +173,7 @@ Partial Class AdvancedForm
         'PictureBox4
         '
         Me.PictureBox4.Image = Global.Outworldz.My.Resources.Resources.about
-        Me.PictureBox4.Location = New System.Drawing.Point(128, 0)
+        Me.PictureBox4.Location = New System.Drawing.Point(141, 0)
         Me.PictureBox4.Name = "PictureBox4"
         Me.PictureBox4.Size = New System.Drawing.Size(28, 32)
         Me.PictureBox4.TabIndex = 1858
@@ -270,7 +271,7 @@ Partial Class AdvancedForm
         'PictureBox3
         '
         Me.PictureBox3.Image = Global.Outworldz.My.Resources.Resources.about
-        Me.PictureBox3.Location = New System.Drawing.Point(46, -1)
+        Me.PictureBox3.Location = New System.Drawing.Point(80, 10)
         Me.PictureBox3.Name = "PictureBox3"
         Me.PictureBox3.Size = New System.Drawing.Size(28, 27)
         Me.PictureBox3.TabIndex = 1857
@@ -326,7 +327,7 @@ Partial Class AdvancedForm
         'MapPicture
         '
         Me.MapPicture.InitialImage = CType(resources.GetObject("MapPicture.InitialImage"), System.Drawing.Image)
-        Me.MapPicture.Location = New System.Drawing.Point(24, 132)
+        Me.MapPicture.Location = New System.Drawing.Point(49, 132)
         Me.MapPicture.Name = "MapPicture"
         Me.MapPicture.Size = New System.Drawing.Size(100, 93)
         Me.MapPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
@@ -382,11 +383,21 @@ Partial Class AdvancedForm
         Me.GroupBox2.TabStop = False
         Me.GroupBox2.Text = "Regions"
         '
+        'GloebitsButton
+        '
+        Me.GloebitsButton.Location = New System.Drawing.Point(399, 156)
+        Me.GloebitsButton.Name = "GloebitsButton"
+        Me.GloebitsButton.Size = New System.Drawing.Size(132, 23)
+        Me.GloebitsButton.TabIndex = 1860
+        Me.GloebitsButton.Text = "Gloebits Currency"
+        Me.GloebitsButton.UseVisualStyleBackColor = True
+        '
         'AdvancedForm
         '
         Me.AutoSize = True
         Me.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.ClientSize = New System.Drawing.Size(565, 255)
+        Me.Controls.Add(Me.GloebitsButton)
         Me.Controls.Add(Me.ExpertButton1)
         Me.Controls.Add(Me.MapBox)
         Me.Controls.Add(Me.GroupBox5)
@@ -443,4 +454,5 @@ Partial Class AdvancedForm
     Friend WithEvents WelcomeBox1 As ComboBox
     Friend WithEvents GroupBox2 As GroupBox
     Friend WithEvents WelcomeRegion As Label
+    Friend WithEvents GloebitsButton As Button
 End Class

@@ -23,23 +23,23 @@ Partial Class Expert
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
-        Me.GroupBox8 = New System.Windows.Forms.GroupBox()
+        Me.StandaloneGroup = New System.Windows.Forms.GroupBox()
+        Me.Label22 = New System.Windows.Forms.Label()
+        Me.Label20 = New System.Windows.Forms.Label()
+        Me.StandaloneDbName = New System.Windows.Forms.TextBox()
+        Me.StandaloneButton = New System.Windows.Forms.RadioButton()
+        Me.Label = New System.Windows.Forms.Label()
+        Me.StandloneUsernameTextBox = New System.Windows.Forms.TextBox()
+        Me.SimPortTextBox = New System.Windows.Forms.TextBox()
+        Me.Label21 = New System.Windows.Forms.Label()
+        Me.SimConnectionTextbox = New System.Windows.Forms.TextBox()
+        Me.DbPasswordTextBox = New System.Windows.Forms.TextBox()
+        Me.Label23 = New System.Windows.Forms.Label()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.RobustDbName = New System.Windows.Forms.TextBox()
         Me.Label16 = New System.Windows.Forms.Label()
         Me.FullGridName = New System.Windows.Forms.TextBox()
-        Me.Label23 = New System.Windows.Forms.Label()
-        Me.DbConnection = New System.Windows.Forms.TextBox()
-        Me.Label22 = New System.Windows.Forms.Label()
-        Me.Label21 = New System.Windows.Forms.Label()
-        Me.DbPassword = New System.Windows.Forms.TextBox()
-        Me.DbUsername = New System.Windows.Forms.TextBox()
-        Me.Label20 = New System.Windows.Forms.Label()
-        Me.StandaloneDbName = New System.Windows.Forms.TextBox()
-        Me.Label = New System.Windows.Forms.Label()
-        Me.DbPort = New System.Windows.Forms.TextBox()
         Me.FullgridButton = New System.Windows.Forms.RadioButton()
-        Me.StandaloneButton = New System.Windows.Forms.RadioButton()
         Me.GroupBox1 = New System.Windows.Forms.GroupBox()
         Me.PhysicsSeparate = New System.Windows.Forms.RadioButton()
         Me.PhysicsNone = New System.Windows.Forms.RadioButton()
@@ -90,7 +90,17 @@ Partial Class Expert
         Me.DnsName = New System.Windows.Forms.TextBox()
         Me.Label7 = New System.Windows.Forms.Label()
         Me.ToolTip1 = New System.Windows.Forms.ToolTip(Me.components)
-        Me.GroupBox8.SuspendLayout()
+        Me.RobustConnectionTextBox = New System.Windows.Forms.TextBox()
+        Me.RobustDbPortTextbox = New System.Windows.Forms.TextBox()
+        Me.GridGroup = New System.Windows.Forms.GroupBox()
+        Me.Label9 = New System.Windows.Forms.Label()
+        Me.Label15 = New System.Windows.Forms.Label()
+        Me.Label8 = New System.Windows.Forms.Label()
+        Me.RobustPasswordTextBox = New System.Windows.Forms.TextBox()
+        Me.Label6 = New System.Windows.Forms.Label()
+        Me.RobustUsernameTextBox = New System.Windows.Forms.TextBox()
+        Me.GroupBox5 = New System.Windows.Forms.GroupBox()
+        Me.StandaloneGroup.SuspendLayout()
         Me.GroupBox1.SuspendLayout()
         Me.GroupBox7.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
@@ -99,117 +109,42 @@ Partial Class Expert
         CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox3.SuspendLayout()
         CType(Me.PictureBox5, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.GridGroup.SuspendLayout()
+        Me.GroupBox5.SuspendLayout()
         Me.SuspendLayout()
         '
-        'GroupBox8
+        'StandaloneGroup
         '
-        Me.GroupBox8.Controls.Add(Me.Label1)
-        Me.GroupBox8.Controls.Add(Me.RobustDbName)
-        Me.GroupBox8.Controls.Add(Me.Label16)
-        Me.GroupBox8.Controls.Add(Me.FullGridName)
-        Me.GroupBox8.Controls.Add(Me.Label23)
-        Me.GroupBox8.Controls.Add(Me.DbConnection)
-        Me.GroupBox8.Controls.Add(Me.Label22)
-        Me.GroupBox8.Controls.Add(Me.Label21)
-        Me.GroupBox8.Controls.Add(Me.DbPassword)
-        Me.GroupBox8.Controls.Add(Me.DbUsername)
-        Me.GroupBox8.Controls.Add(Me.Label20)
-        Me.GroupBox8.Controls.Add(Me.StandaloneDbName)
-        Me.GroupBox8.Controls.Add(Me.Label)
-        Me.GroupBox8.Controls.Add(Me.DbPort)
-        Me.GroupBox8.Location = New System.Drawing.Point(416, 133)
-        Me.GroupBox8.Name = "GroupBox8"
-        Me.GroupBox8.Size = New System.Drawing.Size(238, 210)
-        Me.GroupBox8.TabIndex = 28
-        Me.GroupBox8.TabStop = False
-        Me.GroupBox8.Text = "Database"
-        '
-        'Label1
-        '
-        Me.Label1.AutoSize = True
-        Me.Label1.Location = New System.Drawing.Point(6, 73)
-        Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(59, 13)
-        Me.Label1.TabIndex = 35
-        Me.Label1.Text = "Robust DB"
-        '
-        'RobustDbName
-        '
-        Me.RobustDbName.Location = New System.Drawing.Point(114, 69)
-        Me.RobustDbName.Name = "RobustDbName"
-        Me.RobustDbName.Size = New System.Drawing.Size(107, 20)
-        Me.RobustDbName.TabIndex = 36
-        '
-        'Label16
-        '
-        Me.Label16.AutoSize = True
-        Me.Label16.Location = New System.Drawing.Point(8, 125)
-        Me.Label16.Name = "Label16"
-        Me.Label16.Size = New System.Drawing.Size(63, 13)
-        Me.Label16.TabIndex = 34
-        Me.Label16.Text = "Full Grid DB"
-        '
-        'FullGridName
-        '
-        Me.FullGridName.Location = New System.Drawing.Point(114, 121)
-        Me.FullGridName.Name = "FullGridName"
-        Me.FullGridName.Size = New System.Drawing.Size(107, 20)
-        Me.FullGridName.TabIndex = 33
-        '
-        'Label23
-        '
-        Me.Label23.AutoSize = True
-        Me.Label23.Location = New System.Drawing.Point(6, 20)
-        Me.Label23.Name = "Label23"
-        Me.Label23.Size = New System.Drawing.Size(61, 13)
-        Me.Label23.TabIndex = 19
-        Me.Label23.Text = "Connection"
-        '
-        'DbConnection
-        '
-        Me.DbConnection.Location = New System.Drawing.Point(116, 17)
-        Me.DbConnection.Name = "DbConnection"
-        Me.DbConnection.Size = New System.Drawing.Size(105, 20)
-        Me.DbConnection.TabIndex = 28
-        Me.ToolTip1.SetToolTip(Me.DbConnection, "default: localhost")
+        Me.StandaloneGroup.Controls.Add(Me.Label22)
+        Me.StandaloneGroup.Controls.Add(Me.Label20)
+        Me.StandaloneGroup.Controls.Add(Me.StandaloneDbName)
+        Me.StandaloneGroup.Controls.Add(Me.Label)
+        Me.StandaloneGroup.Controls.Add(Me.StandloneUsernameTextBox)
+        Me.StandaloneGroup.Controls.Add(Me.SimPortTextBox)
+        Me.StandaloneGroup.Controls.Add(Me.Label21)
+        Me.StandaloneGroup.Controls.Add(Me.SimConnectionTextbox)
+        Me.StandaloneGroup.Controls.Add(Me.DbPasswordTextBox)
+        Me.StandaloneGroup.Controls.Add(Me.Label23)
+        Me.StandaloneGroup.Location = New System.Drawing.Point(422, 180)
+        Me.StandaloneGroup.Name = "StandaloneGroup"
+        Me.StandaloneGroup.Size = New System.Drawing.Size(258, 163)
+        Me.StandaloneGroup.TabIndex = 28
+        Me.StandaloneGroup.TabStop = False
+        Me.StandaloneGroup.Text = "Standalone"
         '
         'Label22
         '
         Me.Label22.AutoSize = True
-        Me.Label22.Location = New System.Drawing.Point(11, 174)
+        Me.Label22.Location = New System.Drawing.Point(19, 74)
         Me.Label22.Name = "Label22"
         Me.Label22.Size = New System.Drawing.Size(53, 13)
         Me.Label22.TabIndex = 17
         Me.Label22.Text = "Password"
         '
-        'Label21
-        '
-        Me.Label21.AutoSize = True
-        Me.Label21.Location = New System.Drawing.Point(8, 149)
-        Me.Label21.Name = "Label21"
-        Me.Label21.Size = New System.Drawing.Size(55, 13)
-        Me.Label21.TabIndex = 16
-        Me.Label21.Text = "Username"
-        '
-        'DbPassword
-        '
-        Me.DbPassword.Location = New System.Drawing.Point(114, 170)
-        Me.DbPassword.Name = "DbPassword"
-        Me.DbPassword.Size = New System.Drawing.Size(107, 20)
-        Me.DbPassword.TabIndex = 32
-        Me.DbPassword.UseSystemPasswordChar = True
-        '
-        'DbUsername
-        '
-        Me.DbUsername.Location = New System.Drawing.Point(114, 144)
-        Me.DbUsername.Name = "DbUsername"
-        Me.DbUsername.Size = New System.Drawing.Size(107, 20)
-        Me.DbUsername.TabIndex = 31
-        '
         'Label20
         '
         Me.Label20.AutoSize = True
-        Me.Label20.Location = New System.Drawing.Point(6, 99)
+        Me.Label20.Location = New System.Drawing.Point(14, 23)
         Me.Label20.Name = "Label20"
         Me.Label20.Size = New System.Drawing.Size(79, 13)
         Me.Label20.TabIndex = 13
@@ -217,49 +152,122 @@ Partial Class Expert
         '
         'StandaloneDbName
         '
-        Me.StandaloneDbName.Location = New System.Drawing.Point(114, 95)
+        Me.StandaloneDbName.Location = New System.Drawing.Point(122, 19)
         Me.StandaloneDbName.Name = "StandaloneDbName"
         Me.StandaloneDbName.Size = New System.Drawing.Size(107, 20)
         Me.StandaloneDbName.TabIndex = 30
         '
-        'Label
-        '
-        Me.Label.AutoSize = True
-        Me.Label.Location = New System.Drawing.Point(6, 41)
-        Me.Label.Name = "Label"
-        Me.Label.Size = New System.Drawing.Size(26, 13)
-        Me.Label.TabIndex = 10
-        Me.Label.Text = "Port"
-        '
-        'DbPort
-        '
-        Me.DbPort.Location = New System.Drawing.Point(116, 41)
-        Me.DbPort.Name = "DbPort"
-        Me.DbPort.Size = New System.Drawing.Size(47, 20)
-        Me.DbPort.TabIndex = 29
-        Me.ToolTip1.SetToolTip(Me.DbPort, "default: 3309")
-        '
-        'FullgridButton
-        '
-        Me.FullgridButton.AutoSize = True
-        Me.FullgridButton.Location = New System.Drawing.Point(90, 152)
-        Me.FullgridButton.Name = "FullgridButton"
-        Me.FullgridButton.Size = New System.Drawing.Size(63, 17)
-        Me.FullgridButton.TabIndex = 35
-        Me.FullgridButton.TabStop = True
-        Me.FullgridButton.Text = "Full Grid"
-        Me.FullgridButton.UseVisualStyleBackColor = True
-        '
         'StandaloneButton
         '
         Me.StandaloneButton.AutoSize = True
-        Me.StandaloneButton.Location = New System.Drawing.Point(87, 129)
+        Me.StandaloneButton.Location = New System.Drawing.Point(36, 73)
         Me.StandaloneButton.Name = "StandaloneButton"
         Me.StandaloneButton.Size = New System.Drawing.Size(101, 17)
         Me.StandaloneButton.TabIndex = 14
         Me.StandaloneButton.TabStop = True
         Me.StandaloneButton.Text = "Standalone Grid"
         Me.StandaloneButton.UseVisualStyleBackColor = True
+        '
+        'Label
+        '
+        Me.Label.AutoSize = True
+        Me.Label.Location = New System.Drawing.Point(19, 129)
+        Me.Label.Name = "Label"
+        Me.Label.Size = New System.Drawing.Size(26, 13)
+        Me.Label.TabIndex = 10
+        Me.Label.Text = "Port"
+        '
+        'StandloneUsernameTextBox
+        '
+        Me.StandloneUsernameTextBox.Location = New System.Drawing.Point(122, 45)
+        Me.StandloneUsernameTextBox.Name = "StandloneUsernameTextBox"
+        Me.StandloneUsernameTextBox.Size = New System.Drawing.Size(107, 20)
+        Me.StandloneUsernameTextBox.TabIndex = 31
+        '
+        'SimPortTextBox
+        '
+        Me.SimPortTextBox.Location = New System.Drawing.Point(122, 129)
+        Me.SimPortTextBox.Name = "SimPortTextBox"
+        Me.SimPortTextBox.Size = New System.Drawing.Size(47, 20)
+        Me.SimPortTextBox.TabIndex = 29
+        Me.ToolTip1.SetToolTip(Me.SimPortTextBox, "default: 3309")
+        '
+        'Label21
+        '
+        Me.Label21.AutoSize = True
+        Me.Label21.Location = New System.Drawing.Point(19, 45)
+        Me.Label21.Name = "Label21"
+        Me.Label21.Size = New System.Drawing.Size(55, 13)
+        Me.Label21.TabIndex = 16
+        Me.Label21.Text = "Username"
+        '
+        'SimConnectionTextbox
+        '
+        Me.SimConnectionTextbox.Location = New System.Drawing.Point(122, 103)
+        Me.SimConnectionTextbox.Name = "SimConnectionTextbox"
+        Me.SimConnectionTextbox.Size = New System.Drawing.Size(105, 20)
+        Me.SimConnectionTextbox.TabIndex = 28
+        Me.ToolTip1.SetToolTip(Me.SimConnectionTextbox, "default: localhost")
+        '
+        'DbPasswordTextBox
+        '
+        Me.DbPasswordTextBox.Location = New System.Drawing.Point(122, 74)
+        Me.DbPasswordTextBox.Name = "DbPasswordTextBox"
+        Me.DbPasswordTextBox.Size = New System.Drawing.Size(107, 20)
+        Me.DbPasswordTextBox.TabIndex = 32
+        Me.DbPasswordTextBox.UseSystemPasswordChar = True
+        '
+        'Label23
+        '
+        Me.Label23.AutoSize = True
+        Me.Label23.Location = New System.Drawing.Point(18, 103)
+        Me.Label23.Name = "Label23"
+        Me.Label23.Size = New System.Drawing.Size(81, 13)
+        Me.Label23.TabIndex = 19
+        Me.Label23.Text = "Sim Connection"
+        '
+        'Label1
+        '
+        Me.Label1.AutoSize = True
+        Me.Label1.Location = New System.Drawing.Point(8, 169)
+        Me.Label1.Name = "Label1"
+        Me.Label1.Size = New System.Drawing.Size(59, 13)
+        Me.Label1.TabIndex = 35
+        Me.Label1.Text = "Robust DB"
+        '
+        'RobustDbName
+        '
+        Me.RobustDbName.Location = New System.Drawing.Point(112, 169)
+        Me.RobustDbName.Name = "RobustDbName"
+        Me.RobustDbName.Size = New System.Drawing.Size(107, 20)
+        Me.RobustDbName.TabIndex = 36
+        '
+        'Label16
+        '
+        Me.Label16.AutoSize = True
+        Me.Label16.Location = New System.Drawing.Point(8, 140)
+        Me.Label16.Name = "Label16"
+        Me.Label16.Size = New System.Drawing.Size(63, 13)
+        Me.Label16.TabIndex = 34
+        Me.Label16.Text = "Full Grid DB"
+        '
+        'FullGridName
+        '
+        Me.FullGridName.Location = New System.Drawing.Point(112, 140)
+        Me.FullGridName.Name = "FullGridName"
+        Me.FullGridName.Size = New System.Drawing.Size(107, 20)
+        Me.FullGridName.TabIndex = 33
+        '
+        'FullgridButton
+        '
+        Me.FullgridButton.AutoSize = True
+        Me.FullgridButton.Location = New System.Drawing.Point(36, 96)
+        Me.FullgridButton.Name = "FullgridButton"
+        Me.FullgridButton.Size = New System.Drawing.Size(63, 17)
+        Me.FullgridButton.TabIndex = 35
+        Me.FullgridButton.TabStop = True
+        Me.FullgridButton.Text = "Full Grid"
+        Me.FullgridButton.UseVisualStyleBackColor = True
         '
         'GroupBox1
         '
@@ -333,7 +341,7 @@ Partial Class Expert
         'V9Button
         '
         Me.V9Button.AutoSize = True
-        Me.V9Button.Location = New System.Drawing.Point(9, 152)
+        Me.V9Button.Location = New System.Drawing.Point(34, 51)
         Me.V9Button.Name = "V9Button"
         Me.V9Button.Size = New System.Drawing.Size(59, 17)
         Me.V9Button.TabIndex = 13
@@ -344,7 +352,7 @@ Partial Class Expert
         'V8Button
         '
         Me.V8Button.AutoSize = True
-        Me.V8Button.Location = New System.Drawing.Point(9, 129)
+        Me.V8Button.Location = New System.Drawing.Point(34, 28)
         Me.V8Button.Name = "V8Button"
         Me.V8Button.Size = New System.Drawing.Size(71, 17)
         Me.V8Button.TabIndex = 12
@@ -441,7 +449,7 @@ Partial Class Expert
         Me.GroupBox2.Controls.Add(Me.Label13)
         Me.GroupBox2.Controls.Add(Me.Label4)
         Me.GroupBox2.Controls.Add(Me.PublicPort)
-        Me.GroupBox2.Location = New System.Drawing.Point(416, 16)
+        Me.GroupBox2.Location = New System.Drawing.Point(686, 27)
         Me.GroupBox2.Name = "GroupBox2"
         Me.GroupBox2.Size = New System.Drawing.Size(201, 94)
         Me.GroupBox2.TabIndex = 32
@@ -659,11 +667,7 @@ Partial Class Expert
         '
         'GroupBox3
         '
-        Me.GroupBox3.Controls.Add(Me.FullgridButton)
         Me.GroupBox3.Controls.Add(Me.PictureBox5)
-        Me.GroupBox3.Controls.Add(Me.V9Button)
-        Me.GroupBox3.Controls.Add(Me.V8Button)
-        Me.GroupBox3.Controls.Add(Me.StandaloneButton)
         Me.GroupBox3.Controls.Add(Me.HypericaButton)
         Me.GroupBox3.Controls.Add(Me.TestButton1)
         Me.GroupBox3.Controls.Add(Me.Label2)
@@ -673,7 +677,7 @@ Partial Class Expert
         Me.GroupBox3.Controls.Add(Me.Label7)
         Me.GroupBox3.Location = New System.Drawing.Point(12, 12)
         Me.GroupBox3.Name = "GroupBox3"
-        Me.GroupBox3.Size = New System.Drawing.Size(192, 182)
+        Me.GroupBox3.Size = New System.Drawing.Size(192, 169)
         Me.GroupBox3.TabIndex = 37
         Me.GroupBox3.TabStop = False
         Me.GroupBox3.Text = "Grid"
@@ -681,7 +685,7 @@ Partial Class Expert
         'PictureBox5
         '
         Me.PictureBox5.Image = Global.Outworldz.My.Resources.Resources.about
-        Me.PictureBox5.Location = New System.Drawing.Point(136, -5)
+        Me.PictureBox5.Location = New System.Drawing.Point(150, 9)
         Me.PictureBox5.Name = "PictureBox5"
         Me.PictureBox5.Size = New System.Drawing.Size(28, 27)
         Me.PictureBox5.TabIndex = 1859
@@ -689,7 +693,7 @@ Partial Class Expert
         '
         'HypericaButton
         '
-        Me.HypericaButton.Location = New System.Drawing.Point(90, 54)
+        Me.HypericaButton.Location = New System.Drawing.Point(90, 74)
         Me.HypericaButton.Name = "HypericaButton"
         Me.HypericaButton.Size = New System.Drawing.Size(92, 23)
         Me.HypericaButton.TabIndex = 34
@@ -698,7 +702,7 @@ Partial Class Expert
         '
         'TestButton1
         '
-        Me.TestButton1.Location = New System.Drawing.Point(9, 54)
+        Me.TestButton1.Location = New System.Drawing.Point(9, 74)
         Me.TestButton1.Name = "TestButton1"
         Me.TestButton1.Size = New System.Drawing.Size(75, 23)
         Me.TestButton1.TabIndex = 33
@@ -709,7 +713,7 @@ Partial Class Expert
         'Label2
         '
         Me.Label2.AutoSize = True
-        Me.Label2.Location = New System.Drawing.Point(6, 85)
+        Me.Label2.Location = New System.Drawing.Point(6, 105)
         Me.Label2.Name = "Label2"
         Me.Label2.Size = New System.Drawing.Size(57, 13)
         Me.Label2.TabIndex = 26
@@ -725,14 +729,14 @@ Partial Class Expert
         '
         'GridName
         '
-        Me.GridName.Location = New System.Drawing.Point(9, 103)
+        Me.GridName.Location = New System.Drawing.Point(9, 123)
         Me.GridName.Name = "GridName"
         Me.GridName.Size = New System.Drawing.Size(173, 20)
         Me.GridName.TabIndex = 10
         '
         'DnsName
         '
-        Me.DnsName.Location = New System.Drawing.Point(9, 28)
+        Me.DnsName.Location = New System.Drawing.Point(9, 48)
         Me.DnsName.Name = "DnsName"
         Me.DnsName.Size = New System.Drawing.Size(173, 20)
         Me.DnsName.TabIndex = 22
@@ -741,17 +745,122 @@ Partial Class Expert
         'Label7
         '
         Me.Label7.AutoSize = True
-        Me.Label7.Location = New System.Drawing.Point(6, 14)
+        Me.Label7.Location = New System.Drawing.Point(6, 34)
         Me.Label7.Name = "Label7"
         Me.Label7.Size = New System.Drawing.Size(124, 13)
         Me.Label7.TabIndex = 15
         Me.Label7.Text = "DNS Name or IPAddress"
         '
+        'RobustConnectionTextBox
+        '
+        Me.RobustConnectionTextBox.Location = New System.Drawing.Point(112, 76)
+        Me.RobustConnectionTextBox.Name = "RobustConnectionTextBox"
+        Me.RobustConnectionTextBox.Size = New System.Drawing.Size(105, 20)
+        Me.RobustConnectionTextBox.TabIndex = 31
+        Me.ToolTip1.SetToolTip(Me.RobustConnectionTextBox, "default: localhost")
+        '
+        'RobustDbPortTextbox
+        '
+        Me.RobustDbPortTextbox.Location = New System.Drawing.Point(112, 108)
+        Me.RobustDbPortTextbox.Name = "RobustDbPortTextbox"
+        Me.RobustDbPortTextbox.Size = New System.Drawing.Size(47, 20)
+        Me.RobustDbPortTextbox.TabIndex = 33
+        Me.ToolTip1.SetToolTip(Me.RobustDbPortTextbox, "default: 3309")
+        '
+        'GridGroup
+        '
+        Me.GridGroup.Controls.Add(Me.Label1)
+        Me.GridGroup.Controls.Add(Me.Label9)
+        Me.GridGroup.Controls.Add(Me.RobustDbPortTextbox)
+        Me.GridGroup.Controls.Add(Me.RobustDbName)
+        Me.GridGroup.Controls.Add(Me.Label15)
+        Me.GridGroup.Controls.Add(Me.FullGridName)
+        Me.GridGroup.Controls.Add(Me.Label8)
+        Me.GridGroup.Controls.Add(Me.RobustPasswordTextBox)
+        Me.GridGroup.Controls.Add(Me.Label16)
+        Me.GridGroup.Controls.Add(Me.Label6)
+        Me.GridGroup.Controls.Add(Me.RobustUsernameTextBox)
+        Me.GridGroup.Controls.Add(Me.RobustConnectionTextBox)
+        Me.GridGroup.Location = New System.Drawing.Point(686, 184)
+        Me.GridGroup.Name = "GridGroup"
+        Me.GridGroup.Size = New System.Drawing.Size(243, 210)
+        Me.GridGroup.TabIndex = 39
+        Me.GridGroup.TabStop = False
+        Me.GridGroup.Text = "Full Grid"
+        '
+        'Label9
+        '
+        Me.Label9.AutoSize = True
+        Me.Label9.Location = New System.Drawing.Point(8, 50)
+        Me.Label9.Name = "Label9"
+        Me.Label9.Size = New System.Drawing.Size(53, 13)
+        Me.Label9.TabIndex = 35
+        Me.Label9.Text = "Password"
+        '
+        'Label15
+        '
+        Me.Label15.AutoSize = True
+        Me.Label15.Location = New System.Drawing.Point(6, 25)
+        Me.Label15.Name = "Label15"
+        Me.Label15.Size = New System.Drawing.Size(55, 13)
+        Me.Label15.TabIndex = 34
+        Me.Label15.Text = "Username"
+        '
+        'Label8
+        '
+        Me.Label8.AutoSize = True
+        Me.Label8.Location = New System.Drawing.Point(8, 108)
+        Me.Label8.Name = "Label8"
+        Me.Label8.Size = New System.Drawing.Size(26, 13)
+        Me.Label8.TabIndex = 32
+        Me.Label8.Text = "Port"
+        '
+        'RobustPasswordTextBox
+        '
+        Me.RobustPasswordTextBox.Location = New System.Drawing.Point(112, 51)
+        Me.RobustPasswordTextBox.Name = "RobustPasswordTextBox"
+        Me.RobustPasswordTextBox.Size = New System.Drawing.Size(107, 20)
+        Me.RobustPasswordTextBox.TabIndex = 37
+        Me.RobustPasswordTextBox.UseSystemPasswordChar = True
+        '
+        'Label6
+        '
+        Me.Label6.AutoSize = True
+        Me.Label6.Location = New System.Drawing.Point(8, 76)
+        Me.Label6.Name = "Label6"
+        Me.Label6.Size = New System.Drawing.Size(98, 13)
+        Me.Label6.TabIndex = 30
+        Me.Label6.Text = "Robust Connection"
+        '
+        'RobustUsernameTextBox
+        '
+        Me.RobustUsernameTextBox.Location = New System.Drawing.Point(112, 25)
+        Me.RobustUsernameTextBox.Name = "RobustUsernameTextBox"
+        Me.RobustUsernameTextBox.Size = New System.Drawing.Size(107, 20)
+        Me.RobustUsernameTextBox.TabIndex = 36
+        '
+        'GroupBox5
+        '
+        Me.GroupBox5.Controls.Add(Me.V9Button)
+        Me.GroupBox5.Controls.Add(Me.V8Button)
+        Me.GroupBox5.Controls.Add(Me.FullgridButton)
+        Me.GroupBox5.Controls.Add(Me.StandaloneButton)
+        Me.GroupBox5.Location = New System.Drawing.Point(422, 21)
+        Me.GroupBox5.Name = "GroupBox5"
+        Me.GroupBox5.Size = New System.Drawing.Size(258, 134)
+        Me.GroupBox5.TabIndex = 40
+        Me.GroupBox5.TabStop = False
+        Me.GroupBox5.Text = "Version"
+        '
         'Expert
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(696, 417)
+        Me.AutoSize = True
+        Me.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
+        Me.ClientSize = New System.Drawing.Size(941, 417)
+        Me.Controls.Add(Me.GroupBox5)
+        Me.Controls.Add(Me.GridGroup)
         Me.Controls.Add(Me.GroupBox3)
         Me.Controls.Add(Me.GroupBox4)
         Me.Controls.Add(Me.Web)
@@ -760,11 +869,11 @@ Partial Class Expert
         Me.Controls.Add(Me.GroupBox2)
         Me.Controls.Add(Me.GroupBox7)
         Me.Controls.Add(Me.GroupBox1)
-        Me.Controls.Add(Me.GroupBox8)
+        Me.Controls.Add(Me.StandaloneGroup)
         Me.Name = "Expert"
         Me.Text = "Expert Settings"
-        Me.GroupBox8.ResumeLayout(False)
-        Me.GroupBox8.PerformLayout()
+        Me.StandaloneGroup.ResumeLayout(False)
+        Me.StandaloneGroup.PerformLayout()
         Me.GroupBox1.ResumeLayout(False)
         Me.GroupBox1.PerformLayout()
         Me.GroupBox7.ResumeLayout(False)
@@ -779,25 +888,29 @@ Partial Class Expert
         Me.GroupBox3.ResumeLayout(False)
         Me.GroupBox3.PerformLayout()
         CType(Me.PictureBox5, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.GridGroup.ResumeLayout(False)
+        Me.GridGroup.PerformLayout()
+        Me.GroupBox5.ResumeLayout(False)
+        Me.GroupBox5.PerformLayout()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
     End Sub
 
-    Friend WithEvents GroupBox8 As GroupBox
+    Friend WithEvents StandaloneGroup As GroupBox
     Friend WithEvents Label16 As Label
     Friend WithEvents FullGridName As TextBox
     Friend WithEvents StandaloneButton As RadioButton
     Friend WithEvents Label23 As Label
-    Friend WithEvents DbConnection As TextBox
+    Friend WithEvents SimConnectionTextbox As TextBox
     Friend WithEvents Label22 As Label
     Friend WithEvents Label21 As Label
-    Friend WithEvents DbPassword As TextBox
-    Friend WithEvents DbUsername As TextBox
+    Friend WithEvents DbPasswordTextBox As TextBox
+    Friend WithEvents StandloneUsernameTextBox As TextBox
     Friend WithEvents Label20 As Label
     Friend WithEvents StandaloneDbName As TextBox
     Friend WithEvents Label As Label
-    Friend WithEvents DbPort As TextBox
+    Friend WithEvents SimPortTextBox As TextBox
     Friend WithEvents GroupBox1 As GroupBox
     Friend WithEvents PhysicsSeparate As RadioButton
     Friend WithEvents PhysicsNone As RadioButton
@@ -851,4 +964,14 @@ Partial Class Expert
     Friend WithEvents Label1 As Label
     Friend WithEvents RobustDbName As TextBox
     Friend WithEvents PictureBox1 As PictureBox
+    Friend WithEvents GridGroup As GroupBox
+    Friend WithEvents Label9 As Label
+    Friend WithEvents RobustDbPortTextbox As TextBox
+    Friend WithEvents Label15 As Label
+    Friend WithEvents Label8 As Label
+    Friend WithEvents RobustPasswordTextBox As TextBox
+    Friend WithEvents Label6 As Label
+    Friend WithEvents RobustUsernameTextBox As TextBox
+    Friend WithEvents RobustConnectionTextBox As TextBox
+    Friend WithEvents GroupBox5 As GroupBox
 End Class
