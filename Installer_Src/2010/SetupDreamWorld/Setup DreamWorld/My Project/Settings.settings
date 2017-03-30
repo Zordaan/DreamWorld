@@ -197,11 +197,11 @@
     <Setting Name="GloebitsMode" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="OAuthKey" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+    <Setting Name="GLSandKey" Type="System.String" Scope="User">
+      <Value Profile="(Default)">A key goes here</Value>
     </Setting>
-    <Setting Name="OAuthSecret" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+    <Setting Name="GLSandSecret" Type="System.String" Scope="User">
+      <Value Profile="(Default)">A secret goes here</Value>
     </Setting>
     <Setting Name="GLBOwnerEmail" Type="System.String" Scope="User">
       <Value Profile="(Default)">Your Email</Value>
@@ -220,6 +220,12 @@
     </Setting>
     <Setting Name="RobustDbPort" Type="System.String" Scope="User">
       <Value Profile="(Default)">3306</Value>
+    </Setting>
+    <Setting Name="GLProdKey" Type="System.String" Scope="User">
+      <Value Profile="(Default)">A key goes here</Value>
+    </Setting>
+    <Setting Name="GLProdSecret" Type="System.String" Scope="User">
+      <Value Profile="(Default)">A secret goes here</Value>
     </Setting>
   </Settings>
 </SettingsFile>

@@ -836,25 +836,25 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("")>  _
-        Public Property OAuthKey() As String
+         Global.System.Configuration.DefaultSettingValueAttribute("A key goes here")>  _
+        Public Property GLSandKey() As String
             Get
-                Return CType(Me("OAuthKey"),String)
+                Return CType(Me("GLSandKey"),String)
             End Get
             Set
-                Me("OAuthKey") = value
+                Me("GLSandKey") = value
             End Set
         End Property
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("")>  _
-        Public Property OAuthSecret() As String
+         Global.System.Configuration.DefaultSettingValueAttribute("A secret goes here")>  _
+        Public Property GLSandSecret() As String
             Get
-                Return CType(Me("OAuthSecret"),String)
+                Return CType(Me("GLSandSecret"),String)
             End Get
             Set
-                Me("OAuthSecret") = value
+                Me("GLSandSecret") = value
             End Set
         End Property
         
@@ -927,6 +927,30 @@ Namespace My
             End Get
             Set
                 Me("RobustDbPort") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("A key goes here")>  _
+        Public Property GLProdKey() As String
+            Get
+                Return CType(Me("GLProdKey"),String)
+            End Get
+            Set
+                Me("GLProdKey") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("A secret goes here")>  _
+        Public Property GLProdSecret() As String
+            Get
+                Return CType(Me("GLProdSecret"),String)
+            End Get
+            Set
+                Me("GLProdSecret") = value
             End Set
         End Property
     End Class

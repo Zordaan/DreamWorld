@@ -58,6 +58,7 @@ Public Class DNSName
             Dim IP = Form1.DoGetHostAddresses(TextBox1.Text)
             Dim address As IPAddress = Nothing
             If IPAddress.TryParse(IP, address) Then
+                MsgBox("XX")
                 My.Settings.DnsName = TextBox1.Text
                 My.Settings.Save()
                 Expert.DnsName.Text = TextBox1.Text

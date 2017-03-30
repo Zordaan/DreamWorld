@@ -899,8 +899,8 @@ Public Class Form1
             SetIni("Gloebit", "GLBEnvironment", "sandbox")
         End If
 
-        SetIni("Gloebit", "GLBKey", My.Settings.OAuthKey)
-        SetIni("Gloebit", "GLBSecret", My.Settings.OAuthSecret)
+        SetIni("Gloebit", "GLBKey", My.Settings.GLSandKey)
+        SetIni("Gloebit", "GLBSecret", My.Settings.GLSandSecret)
         SetIni("Gloebit", "GLBOwnerName", My.Settings.GLBOwnerName)
         SetIni("Gloebit", "GLBOwnerEmail", My.Settings.GLBOwnerEmail)
 
