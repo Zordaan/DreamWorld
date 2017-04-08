@@ -47,7 +47,6 @@ Partial Class Expert
         Me.PhysicsBullet = New System.Windows.Forms.RadioButton()
         Me.PhysicsODE = New System.Windows.Forms.RadioButton()
         Me.V9Button = New System.Windows.Forms.RadioButton()
-        Me.V8Button = New System.Windows.Forms.RadioButton()
         Me.GroupBox7 = New System.Windows.Forms.GroupBox()
         Me.StatsButton = New System.Windows.Forms.Button()
         Me.WebStats = New System.Windows.Forms.CheckBox()
@@ -101,6 +100,7 @@ Partial Class Expert
         Me.RobustUsernameTextBox = New System.Windows.Forms.TextBox()
         Me.GroupBox5 = New System.Windows.Forms.GroupBox()
         Me.V8RadioButton1 = New System.Windows.Forms.RadioButton()
+        Me.GroupBox6 = New System.Windows.Forms.GroupBox()
         Me.StandaloneGroup.SuspendLayout()
         Me.GroupBox1.SuspendLayout()
         Me.GroupBox7.SuspendLayout()
@@ -112,6 +112,7 @@ Partial Class Expert
         CType(Me.PictureBox5, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GridGroup.SuspendLayout()
         Me.GroupBox5.SuspendLayout()
+        Me.GroupBox6.SuspendLayout()
         Me.SuspendLayout()
         '
         'StandaloneGroup
@@ -126,9 +127,9 @@ Partial Class Expert
         Me.StandaloneGroup.Controls.Add(Me.SimConnectionTextbox)
         Me.StandaloneGroup.Controls.Add(Me.DbPasswordTextBox)
         Me.StandaloneGroup.Controls.Add(Me.Label23)
-        Me.StandaloneGroup.Location = New System.Drawing.Point(422, 180)
+        Me.StandaloneGroup.Location = New System.Drawing.Point(439, 111)
         Me.StandaloneGroup.Name = "StandaloneGroup"
-        Me.StandaloneGroup.Size = New System.Drawing.Size(258, 163)
+        Me.StandaloneGroup.Size = New System.Drawing.Size(243, 163)
         Me.StandaloneGroup.TabIndex = 28
         Me.StandaloneGroup.TabStop = False
         Me.StandaloneGroup.Text = "Standalone"
@@ -219,12 +220,12 @@ Partial Class Expert
         'StandaloneButton
         '
         Me.StandaloneButton.AutoSize = True
-        Me.StandaloneButton.Location = New System.Drawing.Point(36, 73)
+        Me.StandaloneButton.Location = New System.Drawing.Point(6, 26)
         Me.StandaloneButton.Name = "StandaloneButton"
-        Me.StandaloneButton.Size = New System.Drawing.Size(101, 17)
+        Me.StandaloneButton.Size = New System.Drawing.Size(79, 17)
         Me.StandaloneButton.TabIndex = 14
-        Me.StandaloneButton.TabStop = True
-        Me.StandaloneButton.Text = "Standalone Grid"
+        Me.StandaloneButton.Text = "Standalone"
+        Me.ToolTip1.SetToolTip(Me.StandaloneButton, "Default")
         Me.StandaloneButton.UseVisualStyleBackColor = True
         '
         'Label1
@@ -262,12 +263,12 @@ Partial Class Expert
         'FullgridButton
         '
         Me.FullgridButton.AutoSize = True
-        Me.FullgridButton.Location = New System.Drawing.Point(36, 96)
+        Me.FullgridButton.Location = New System.Drawing.Point(6, 49)
         Me.FullgridButton.Name = "FullgridButton"
         Me.FullgridButton.Size = New System.Drawing.Size(63, 17)
         Me.FullgridButton.TabIndex = 35
-        Me.FullgridButton.TabStop = True
         Me.FullgridButton.Text = "Full Grid"
+        Me.ToolTip1.SetToolTip(Me.FullgridButton, "Only If you need multiple servers\")
         Me.FullgridButton.UseVisualStyleBackColor = True
         '
         'GroupBox1
@@ -342,24 +343,12 @@ Partial Class Expert
         'V9Button
         '
         Me.V9Button.AutoSize = True
-        Me.V9Button.Location = New System.Drawing.Point(34, 51)
+        Me.V9Button.Location = New System.Drawing.Point(17, 49)
         Me.V9Button.Name = "V9Button"
         Me.V9Button.Size = New System.Drawing.Size(59, 17)
         Me.V9Button.TabIndex = 13
-        Me.V9Button.TabStop = True
         Me.V9Button.Text = "V 0.9.0"
         Me.V9Button.UseVisualStyleBackColor = True
-        '
-        'V8Button
-        '
-        Me.V8Button.AutoSize = True
-        Me.V8Button.Location = New System.Drawing.Point(34, 28)
-        Me.V8Button.Name = "V8Button"
-        Me.V8Button.Size = New System.Drawing.Size(71, 17)
-        Me.V8Button.TabIndex = 12
-        Me.V8Button.TabStop = True
-        Me.V8Button.Text = "V 0.8.2.1 "
-        Me.V8Button.UseVisualStyleBackColor = True
         '
         'GroupBox7
         '
@@ -450,9 +439,9 @@ Partial Class Expert
         Me.GroupBox2.Controls.Add(Me.Label13)
         Me.GroupBox2.Controls.Add(Me.Label4)
         Me.GroupBox2.Controls.Add(Me.PublicPort)
-        Me.GroupBox2.Location = New System.Drawing.Point(686, 27)
+        Me.GroupBox2.Location = New System.Drawing.Point(439, 326)
         Me.GroupBox2.Name = "GroupBox2"
-        Me.GroupBox2.Size = New System.Drawing.Size(201, 94)
+        Me.GroupBox2.Size = New System.Drawing.Size(241, 93)
         Me.GroupBox2.TabIndex = 32
         Me.GroupBox2.TabStop = False
         Me.GroupBox2.Text = "Ports"
@@ -470,7 +459,7 @@ Partial Class Expert
         '
         Me.SplashPage.Location = New System.Drawing.Point(219, 374)
         Me.SplashPage.Name = "SplashPage"
-        Me.SplashPage.Size = New System.Drawing.Size(256, 20)
+        Me.SplashPage.Size = New System.Drawing.Size(208, 20)
         Me.SplashPage.TabIndex = 33
         '
         'Web
@@ -620,7 +609,7 @@ Partial Class Expert
         'PictureBox1
         '
         Me.PictureBox1.Image = Global.Outworldz.My.Resources.Resources.about
-        Me.PictureBox1.Location = New System.Drawing.Point(80, -17)
+        Me.PictureBox1.Location = New System.Drawing.Point(134, 6)
         Me.PictureBox1.Name = "PictureBox1"
         Me.PictureBox1.Size = New System.Drawing.Size(30, 34)
         Me.PictureBox1.TabIndex = 1857
@@ -782,7 +771,7 @@ Partial Class Expert
         Me.GridGroup.Controls.Add(Me.Label6)
         Me.GridGroup.Controls.Add(Me.RobustUsernameTextBox)
         Me.GridGroup.Controls.Add(Me.RobustConnectionTextBox)
-        Me.GridGroup.Location = New System.Drawing.Point(686, 184)
+        Me.GridGroup.Location = New System.Drawing.Point(439, 110)
         Me.GridGroup.Name = "GridGroup"
         Me.GridGroup.Size = New System.Drawing.Size(243, 210)
         Me.GridGroup.TabIndex = 39
@@ -844,12 +833,9 @@ Partial Class Expert
         '
         Me.GroupBox5.Controls.Add(Me.V8RadioButton1)
         Me.GroupBox5.Controls.Add(Me.V9Button)
-        Me.GroupBox5.Controls.Add(Me.V8Button)
-        Me.GroupBox5.Controls.Add(Me.FullgridButton)
-        Me.GroupBox5.Controls.Add(Me.StandaloneButton)
-        Me.GroupBox5.Location = New System.Drawing.Point(422, 21)
+        Me.GroupBox5.Location = New System.Drawing.Point(439, 21)
         Me.GroupBox5.Name = "GroupBox5"
-        Me.GroupBox5.Size = New System.Drawing.Size(258, 134)
+        Me.GroupBox5.Size = New System.Drawing.Size(118, 82)
         Me.GroupBox5.TabIndex = 40
         Me.GroupBox5.TabStop = False
         Me.GroupBox5.Text = "Version"
@@ -857,7 +843,8 @@ Partial Class Expert
         'V8RadioButton1
         '
         Me.V8RadioButton1.AutoSize = True
-        Me.V8RadioButton1.Location = New System.Drawing.Point(122, 29)
+        Me.V8RadioButton1.Checked = True
+        Me.V8RadioButton1.Location = New System.Drawing.Point(17, 26)
         Me.V8RadioButton1.Name = "V8RadioButton1"
         Me.V8RadioButton1.Size = New System.Drawing.Size(71, 17)
         Me.V8RadioButton1.TabIndex = 36
@@ -865,13 +852,25 @@ Partial Class Expert
         Me.V8RadioButton1.Text = "V 0.8.2.1 "
         Me.V8RadioButton1.UseVisualStyleBackColor = True
         '
+        'GroupBox6
+        '
+        Me.GroupBox6.Controls.Add(Me.FullgridButton)
+        Me.GroupBox6.Controls.Add(Me.StandaloneButton)
+        Me.GroupBox6.Location = New System.Drawing.Point(563, 21)
+        Me.GroupBox6.Name = "GroupBox6"
+        Me.GroupBox6.Size = New System.Drawing.Size(117, 84)
+        Me.GroupBox6.TabIndex = 41
+        Me.GroupBox6.TabStop = False
+        Me.GroupBox6.Text = "Grid type"
+        '
         'Expert
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.AutoSize = True
         Me.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
-        Me.ClientSize = New System.Drawing.Size(941, 417)
+        Me.ClientSize = New System.Drawing.Size(699, 443)
+        Me.Controls.Add(Me.GroupBox6)
         Me.Controls.Add(Me.GroupBox5)
         Me.Controls.Add(Me.GridGroup)
         Me.Controls.Add(Me.GroupBox3)
@@ -883,6 +882,7 @@ Partial Class Expert
         Me.Controls.Add(Me.GroupBox7)
         Me.Controls.Add(Me.GroupBox1)
         Me.Controls.Add(Me.StandaloneGroup)
+        Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow
         Me.Name = "Expert"
         Me.Text = "Expert Settings"
         Me.StandaloneGroup.ResumeLayout(False)
@@ -905,6 +905,8 @@ Partial Class Expert
         Me.GridGroup.PerformLayout()
         Me.GroupBox5.ResumeLayout(False)
         Me.GroupBox5.PerformLayout()
+        Me.GroupBox6.ResumeLayout(False)
+        Me.GroupBox6.PerformLayout()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -931,7 +933,6 @@ Partial Class Expert
     Friend WithEvents PhysicsBullet As RadioButton
     Friend WithEvents PhysicsODE As RadioButton
     Friend WithEvents V9Button As RadioButton
-    Friend WithEvents V8Button As RadioButton
     Friend WithEvents GroupBox7 As GroupBox
     Friend WithEvents StatsButton As Button
     Friend WithEvents WebStats As CheckBox
@@ -988,4 +989,5 @@ Partial Class Expert
     Friend WithEvents RobustConnectionTextBox As TextBox
     Friend WithEvents GroupBox5 As GroupBox
     Friend WithEvents V8RadioButton1 As RadioButton
+    Friend WithEvents GroupBox6 As GroupBox
 End Class

@@ -213,10 +213,10 @@
       <Value Profile="(Default)">localhost</Value>
     </Setting>
     <Setting Name="RobustUsername" Type="System.String" Scope="User">
-      <Value Profile="(Default)">opensimuser</Value>
+      <Value Profile="(Default)">robustsimuser</Value>
     </Setting>
     <Setting Name="RobustPassword" Type="System.String" Scope="User">
-      <Value Profile="(Default)">opensimpassword</Value>
+      <Value Profile="(Default)">robustsimpassword</Value>
     </Setting>
     <Setting Name="RobustDbPort" Type="System.String" Scope="User">
       <Value Profile="(Default)">3306</Value>

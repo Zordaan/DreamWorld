@@ -1,5 +1,5 @@
 ﻿Public Class Gloebits
-
+    Implements IDisposable
 #Region "Globals"
     Dim Initted As Boolean = False
 #End Region

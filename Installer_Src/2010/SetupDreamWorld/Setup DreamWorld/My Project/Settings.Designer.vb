@@ -896,7 +896,7 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("opensimuser")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("robustsimuser")>  _
         Public Property RobustUsername() As String
             Get
                 Return CType(Me("RobustUsername"),String)
@@ -908,7 +908,7 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("opensimpassword")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("robustsimpassword")>  _
         Public Property RobustPassword() As String
             Get
                 Return CType(Me("RobustPassword"),String)

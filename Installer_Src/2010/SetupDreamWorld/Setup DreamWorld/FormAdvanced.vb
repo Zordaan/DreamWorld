@@ -318,8 +318,8 @@ Public Class AdvancedForm
         Dim X As Integer = 300
         Dim Y As Integer = 200
         ActualForm.SetDesktopLocation(X, Y)
-        ActualForm.Activate()
         ActualForm.Visible = True
+        ActualForm.Activate()
         Application.DoEvents()
     End Sub
 

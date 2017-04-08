@@ -2,9 +2,16 @@
 Imports System.Net
 
 Public Class Expert
+    '   Implements IDisposable
+
 #Region "Load/Exit"
 
     Private Sub Loaded(sender As Object, e As EventArgs) Handles Me.Load
+
+        StandaloneGroup.Enabled = True
+        GridGroup.Enabled = True
+
+        WebStats.Checked = My.Settings.WebStats
 
         'ports
         PublicPort.Text = My.Settings.PublicPort
@@ -85,6 +92,10 @@ Public Class Expert
             Form1.Log("Info:0.8.2.1 enabled")
         End If
 
+        StandaloneButton.Checked = Not My.Settings.RobustEnabled
+        FullgridButton.Checked = My.Settings.RobustEnabled
+
+        My.Application.DoEvents
         GridName.Text = My.Settings.SimName
         DnsName.Text = My.Settings.DnsName
 
@@ -96,8 +107,6 @@ Public Class Expert
         RobustUsernameTextBox.Text = My.Settings.RobustUsername
         RobustDbName.Text = My.Settings.RobustDbName
         RobustDbPortTextbox.Text = My.Settings.RobustDbPort
-
-        ChangeGridGray()
 
     End Sub
 #End Region
@@ -259,7 +268,7 @@ Public Class Expert
     Private Sub V9Button_CheckedChanged(sender As Object, e As EventArgs) Handles V9Button.CheckedChanged
         Debug.Print(V9Button.Checked.ToString)
         If V9Button.Checked Then
-            V8RadioButton1.Checked = False
+
             My.Settings.GridFolder = "Opensim-0.9"
             My.Settings.Save()
             Try
@@ -268,28 +277,17 @@ Public Class Expert
             End Try
             Form1.ViewWebUI.Visible = False
             Web.Enabled = False
+
+            ' Ubits ODE is only available under 0.9 and greater
+            PhysicsubODE.Enabled = True
+            PhysicsODE.Enabled = False
         End If
     End Sub
 
     Private Sub V8RadioButton1_CheckedChanged(sender As Object, e As EventArgs) Handles V8RadioButton1.CheckedChanged
-        Debug.Print(V8Button.Checked.ToString)
-        If V8Button.Checked Then
-            V9Button.Checked = False
-            My.Settings.GridFolder = "Opensim"
-            My.Settings.Save()
-            Try
-                My.Computer.FileSystem.RenameFile(Form1.MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\Regions\RegionConfig.ini", "Outworldz.ini")
-            Catch ex As Exception
-            End Try
-            Form1.ViewWebUI.Visible = True
-            Web.Enabled = True
-        End If
-    End Sub
+        Debug.Print(V8RadioButton1.Checked.ToString)
+        If V8RadioButton1.Checked Then
 
-    Private Sub V8Button_CheckedChanged(sender As Object, e As EventArgs) Handles V8Button.CheckedChanged
-        Debug.Print(V8Button.Checked.ToString)
-        If V8Button.Checked Then
-            V9Button.Checked = False
             My.Settings.GridFolder = "Opensim"
             My.Settings.Save()
             Try
@@ -298,35 +296,36 @@ Public Class Expert
             End Try
             Form1.ViewWebUI.Visible = True
             Web.Enabled = True
+
+            ' Ubits ODE is only available under 0.9 and greater
+            PhysicsubODE.Enabled = False
+            PhysicsODE.Enabled = True
+
         End If
     End Sub
 
     Private Sub StandaloneButton_CheckedChanged(sender As Object, e As EventArgs) Handles StandaloneButton.CheckedChanged
-        ChangeGridGray()
+
+        If StandaloneButton.Checked Then
+            StandaloneGroup.Visible = True
+            GridGroup.Visible = False
+            My.Settings.RobustEnabled = False
+            My.Settings.Save()
+        End If
+
     End Sub
+
     Private Sub Fullgrid_CheckedChanged(sender As Object, e As EventArgs) Handles FullgridButton.CheckedChanged
         If FullgridButton.Checked Then
-            StandaloneButton.Checked = False
+            StandaloneGroup.Visible = False
+            GridGroup.Visible = True
+            My.Settings.RobustEnabled = True
+            My.Settings.Save()
 
-            RobustDbName.Enabled = True
-            StandaloneDbName.Enabled = False
-            FullGridName.Enabled = True
-        Else
-            RobustDbName.Enabled = False
-            StandaloneDbName.Enabled = True
-            FullGridName.Enabled = False
         End If
+
     End Sub
 
-    Private Sub ChangeGridGray()
-        If StandaloneButton.Checked Then
-            StandaloneGroup.Enabled = True
-            GridGroup.Enabled = False
-        Else
-            StandaloneGroup.Enabled = False
-            GridGroup.Enabled = True
-        End If
-    End Sub
 #End Region
 
 #Region "DNS"

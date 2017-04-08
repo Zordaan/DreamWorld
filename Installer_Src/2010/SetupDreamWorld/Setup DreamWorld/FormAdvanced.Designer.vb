@@ -396,7 +396,7 @@ Partial Class AdvancedForm
         '
         Me.AutoSize = True
         Me.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
-        Me.ClientSize = New System.Drawing.Size(565, 255)
+        Me.ClientSize = New System.Drawing.Size(565, 268)
         Me.Controls.Add(Me.GloebitsButton)
         Me.Controls.Add(Me.ExpertButton1)
         Me.Controls.Add(Me.MapBox)
@@ -404,6 +404,7 @@ Partial Class AdvancedForm
         Me.Controls.Add(Me.VoiceButton1)
         Me.Controls.Add(Me.GroupBox3)
         Me.Controls.Add(Me.GroupBox2)
+        Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow
         Me.MaximizeBox = False
         Me.MinimizeBox = False
         Me.Name = "AdvancedForm"

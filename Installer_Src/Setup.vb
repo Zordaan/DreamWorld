@@ -69,6 +69,7 @@ Public Class Form1
     Dim parser As FileIniDataParser
     Dim gINI As String  ' the name of the current INI file we are writing
     Dim OpensimProcID As Integer
+    Dim RobustProcID As Integer
     Private images =
     New List(Of Image) From {My.Resources.tangled, My.Resources.wp_habitat, My.Resources.wp_Mooferd,
                              My.Resources.wp_To_Piers_Anthony,
@@ -377,7 +378,7 @@ Public Class Form1
         StartMySQL() ' boot up MySql, and wait for it to start listening
 
         If Not Start_Opensimulator() Then ' Launch the rocket
-            'KillAll()
+            KillAll()
             Return
         End If
         Onlook()
@@ -495,12 +496,16 @@ Public Class Form1
             End Try
             Me.Focus()
         Catch ex As Exception
-            Log("Warn:Cannot stop a non-running Opensim:" + ex.Message)
+            Log("Huh:Cannot stop a non-running Opensim:" + ex.Message)
         End Try
+
+        If RobustProcID Then
+            RobustCommand("quit{ENTER}")
+        End If
 
         ProgressBar1.Value = 33
 
-        'CloseRouterPorts()
+        ' CloseRouterPorts()
 
         ' cannot load OAR or IAR, either
         IslandToolStripMenuItem.Visible = False
@@ -724,11 +729,13 @@ Public Class Form1
         Dim INIname As String
 
         ' Diva 0.8.2 used MyWorld.ini all other versions use StandaloneCommon.ini
-        Dim prefix = MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config-include\"
-        If My.Settings.GridFolder = "Opensim-0.9" Then
-            INIname = "StandaloneCommon.ini"
+        Dim prefix = MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\"
+        If My.Settings.GridFolder = "Opensim-0.9" And Not My.Settings.RobustEnabled Then
+            INIname = "config-include\StandaloneCommon.ini"
+        ElseIf My.Settings.GridFolder = "Opensim-0.9" And My.Settings.RobustEnabled Then
+            INIname = "Robust.ini"
         Else
-            INIname = "MyWorld.ini"
+            INIname = "config-include\MyWorld.ini"
         End If
 
         Try
@@ -804,24 +811,74 @@ Public Class Form1
             Log("Info:Avatar will not be visible")
         End If
 
+        ''''''''''''''''''''''''''''''''''''''''''''''''
+        '' db connection info  
 
+        Dim ConnectionString As String
         ' set Database connection string
 
-        Dim myDbHandle As String
-        If My.Settings.RobustEnabled = True Then
-            myDbHandle = My.Settings.RobustDbName
-        Else
-            myDbHandle = My.Settings.DBName
-        End If
-
-        Dim ConnectionString = """" _
+        ' 0.8.2.1
+        If My.Settings.GridFolder = "Opensim" Then
+            LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config_include\MyWorld.ini", ";")
+            ConnectionString = """" _
             + "Data Source=" + My.Settings.DBSource _
-            + ";Database=" + myDbHandle _
+            + ";Database=" + My.Settings.DBName _
             + ";Port=" + My.Settings.MySqlPort _
             + ";User ID=" + My.Settings.DBUserID _
             + ";Password=" + My.Settings.DBPassword _
             + ";Old Guids=True;Allow Zero Datetime=True;" _
             + """"
+            SetIni("DatabaseService", "ConnectionString", ConnectionString)
+            SaveINI()
+
+        Else    ' 0.9.0
+
+            ' Standalones
+            LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config-include\standlonecommon.ini", ";")
+            ConnectionString = """" _
+                + "Data Source=" + My.Settings.DBSource _
+                + ";Database=" + My.Settings.DBName _
+                + ";Port=" + My.Settings.MySqlPort _
+                + ";User ID=" + My.Settings.DBUserID _
+                + ";Password=" + My.Settings.DBPassword _
+                + ";Old Guids=True;Allow Zero Datetime=True;" _
+                + """"
+            SetIni("DatabaseService", "ConnectionString", ConnectionString)
+            SaveINI()
+
+
+            ' Grid regions need GridDBName
+            LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config-include\Gridcommon.ini", ";")
+            ConnectionString = """" _
+                + "Data Source=" + My.Settings.RobustDbConnection _
+                + ";Database=" + My.Settings.GridDbName _
+                + ";Port=" + My.Settings.RobustDbPort _
+                + ";User ID=" + My.Settings.RobustUsername _
+                + ";Password=" + My.Settings.RobustPassword _
+                + ";Old Guids=True;Allow Zero Datetime=True;" _
+                + """"
+            SetIni("DatabaseService", "ConnectionString", ConnectionString)
+            SaveINI()
+
+            ' Robust Process
+            LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\Robust.ini", ";")
+
+            ConnectionString = """" _
+                + "Data Source=" + My.Settings.RobustDbConnection _
+                + ";Database=" + My.Settings.RobustDbName _
+                + ";Port=" + My.Settings.RobustDbPort _
+                + ";User ID=" + My.Settings.RobustUsername _
+                + ";Password=" + My.Settings.RobustPassword _
+                + ";Old Guids=True;Allow Zero Datetime=True;" _
+                + """"
+
+            SetIni("DatabaseService", "ConnectionString", ConnectionString)
+
+            SetIni("Const", "BaseURL", My.Settings.RobustDbConnection)
+            SetIni("Const", "PublicPort", My.Settings.PublicPort)
+            SetIni("Const", "PrivatePort", My.Settings.PrivatePort)
+            SaveINI()
+        End If
 
         ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
         ' set the defaults in the INI for the viewer to use. Painful to do as it's a Left hand side edit 
@@ -830,6 +887,71 @@ Public Class Form1
 
         ' Opensim.ini
         LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\Opensim.ini", ";")
+
+        If (My.Settings.allow_grid_gods) Then
+            SetIni("Permissions", "allow_grid_gods", "true")
+        Else
+            SetIni("Permissions", "allow_grid_gods", "false")
+        End If
+
+        If (My.Settings.region_owner_is_god) Then
+            SetIni("Permissions", "region_owner_is_god", "true")
+        Else
+            SetIni("Permissions", "region_owner_is_god", "false")
+        End If
+
+        If (My.Settings.region_manager_is_god) Then
+            SetIni("Permissions", "region_manager_is_god", "true")
+        Else
+            SetIni("Permissions", "region_manager_is_god", "false")
+        End If
+
+        If (My.Settings.parcel_owner_is_god) Then
+            SetIni("Permissions", "parcel_owner_is_god", "true")
+        Else
+            SetIni("Permissions", "parcel_owner_is_god", "false")
+        End If
+
+        ' Physics
+        ' choices for meshmerizer, where Ubit's ODE requires a special one
+        ' mesging = ZeroMesher
+        ' meshing = Meshmerizer
+        ' meshing = ubODEMeshmerizer
+
+        ' 0 = physics = none
+        ' 1 = OpenDynamicsEngine
+        ' 2 = physics = BulletSim
+        ' 3 = physics = BulletSim with threads
+        ' 4 = physics = ubODE
+
+        Select Case My.Settings.Physics
+            Case 0
+                SetIni("Startup", "meshing", "ZeroMesher")
+                SetIni("Startup", "physics", "basicphysics")
+                SetIni("Startup", "UseSeparatePhysicsThread", "false")
+            Case 1
+                SetIni("Startup", "meshing", "Meshmerizer")
+                SetIni("Startup", "physics", "OpenDynamicsEngine")
+                SetIni("Startup", "UseSeparatePhysicsThread", "false")
+            Case 2
+                SetIni("Startup", "meshing", "Meshmerizer")
+                SetIni("Startup", "physics", "BulletSim")
+                SetIni("Startup", "UseSeparatePhysicsThread", "false")
+            Case 3
+                SetIni("Startup", "meshing", "Meshmerizer")
+                SetIni("Startup", "physics", "BulletSim")
+                SetIni("Startup", "UseSeparatePhysicsThread", "true")
+            Case 4
+                SetIni("Startup", "meshing", "ubODEMeshmerizer")
+                SetIni("Startup", "physics", "ubODE")
+                SetIni("Startup", "UseSeparatePhysicsThread", "false")
+            Case Else
+                SetIni("Startup", "meshing", "Meshmerizer")
+                SetIni("Startup", "physics", "BulletSim")
+                SetIni("Startup", "UseSeparatePhysicsThread", "true")
+        End Select
+
+
         SetIni("Const", "httpPort", My.Settings.HttpPort)
         SetIni("Const", "BaseURL", """" + "http://" + My.Settings.PublicIP + """")
         SetIni("Const", "PublicPort", My.Settings.PublicPort)
@@ -888,9 +1010,9 @@ Public Class Form1
 
         LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\Gloebit.ini", ";")
         If My.Settings.GloebitsEnable Then
-            SetIni("Gloebit", "enabled", "true")
+            SetIni("Gloebit", "Enabled", "true")
         Else
-            SetIni("Gloebit", "enabled", "true")
+            SetIni("Gloebit", "Enabled", "false")
         End If
 
         If My.Settings.GloebitsMode Then
@@ -904,89 +1026,24 @@ Public Class Form1
         SetIni("Gloebit", "GLBOwnerName", My.Settings.GLBOwnerName)
         SetIni("Gloebit", "GLBOwnerEmail", My.Settings.GLBOwnerEmail)
 
-        ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-
-        'Gridcommon
-
-        If My.Settings.GridFolder = "Opensim-0.9" Then
-            LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config-include\Gridcommon.ini", ";")
-            SetIni("DatabaseService", "ConnectionString", ConnectionString)
-            SaveINI()
-        End If
+        SaveINI()
 
         ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-
-
-        ' Diva 0.8.2 used MyWorld.ini all other versions use StandaloneCommon.ini
-        If My.Settings.GridFolder = "Opensim-0.9" Then
+        ' GridCommon, Standalone Common and My.ini
+        If My.Settings.GridFolder = "Opensim-0.9" And Not My.Settings.RobustEnabled Then
             ViewWebUI.Visible = False
             LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config-include\StandaloneCommon.ini", ";")
+        ElseIf My.Settings.GridFolder = "Opensim-0.9" And My.Settings.RobustEnabled Then
+            ViewWebUI.Visible = False
+            LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config-include\GridCommon.ini", ";")
         Else
             ViewWebUI.Visible = True
             LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config-include\MyWorld.ini", ";")
         End If
 
 
-        ' set viewer Splash Page V 1.54
-        SetIni("GridInfoService", "welcome", My.Settings.SplashPage)
-
-        ' Voice
-        If My.Settings.VivoxEnabled Then
-            SetIni("VivoxVoice", "enabled", "true")
-        Else
-            SetIni("VivoxVoice", "enabled", "false")
-        End If
-        SetIni("VivoxVoice", "vivox_admin_user", My.Settings.Vivox_username)
-        SetIni("VivoxVoice", "vivox_admin_password", My.Settings.Vivox_password)
-
-        ' Physics
-        ' choices for meshmerizer, where Ubit's ODE requires a special one
-        ' mesging = ZeroMesher
-        ' meshing = Meshmerizer
-        ' meshing = ubODEMeshmerizer
-
-        ' 0 = physics = none
-        ' 1 = OpenDynamicsEngine
-        ' 2 = physics = BulletSim
-        ' 3 = physics = BulletSim with threads
-        ' 4 = physics = ubODE
-
-        Select Case My.Settings.Physics
-            Case 0
-                SetIni("Startup", "meshing", "ZeroMesher")
-                SetIni("Startup", "physics", "basicphysics")
-                SetIni("Startup", "UseSeparatePhysicsThread", "false")
-            Case 1
-                SetIni("Startup", "meshing", "Meshmerizer")
-                SetIni("Startup", "physics", "OpenDynamicsEngine")
-                SetIni("Startup", "UseSeparatePhysicsThread", "false")
-            Case 2
-                SetIni("Startup", "meshing", "Meshmerizer")
-                SetIni("Startup", "physics", "BulletSim")
-                SetIni("Startup", "UseSeparatePhysicsThread", "false")
-            Case 3
-                SetIni("Startup", "meshing", "Meshmerizer")
-                SetIni("Startup", "physics", "BulletSim")
-                SetIni("Startup", "UseSeparatePhysicsThread", "true")
-            Case 4
-                SetIni("Startup", "meshing", "ubODEMeshmerizer")
-                SetIni("Startup", "physics", "ubODE")
-                SetIni("Startup", "UseSeparatePhysicsThread", "false")
-            Case Else
-                SetIni("Startup", "meshing", "Meshmerizer")
-                SetIni("Startup", "physics", "BulletSim")
-                SetIni("Startup", "UseSeparatePhysicsThread", "true")
-        End Select
 
 
-
-        SetIni("DatabaseService", "ConnectionString", ConnectionString)
-
-        If My.Settings.WebStats Then
-            SetIni("WebStats", "enabled", "True")
-        Else
-            SetIni("WebStats", "enabled", "False")
-        End If
 
         ' Viewer UI shows the full viewer UI
         If My.Settings.ViewerEase Then
@@ -1006,29 +1063,6 @@ Public Class Form1
             SetIni("CameraOnlyModeModule", "enabled", "true")
         End If
 
-        If (My.Settings.allow_grid_gods) Then
-            SetIni("Permissions", "allow_grid_gods", "true")
-        Else
-            SetIni("Permissions", "allow_grid_gods", "false")
-        End If
-
-        If (My.Settings.region_owner_is_god) Then
-            SetIni("Permissions", "region_owner_is_god", "true")
-        Else
-            SetIni("Permissions", "region_owner_is_god", "false")
-        End If
-
-        If (My.Settings.region_manager_is_god) Then
-            SetIni("Permissions", "region_manager_is_god", "true")
-        Else
-            SetIni("Permissions", "region_manager_is_god", "false")
-        End If
-
-        If (My.Settings.parcel_owner_is_god) Then
-            SetIni("Permissions", "parcel_owner_is_god", "true")
-        Else
-            SetIni("Permissions", "parcel_owner_is_god", "false")
-        End If
 
         If My.Settings.GridFolder <> "Opensim-0.9" Then
             SetIni("WifiService", "AdminPassword", """" + My.Settings.Password + """")
@@ -1053,7 +1087,25 @@ Public Class Form1
         SetIni("AutoBackupModule", "AutoBackupInterval", My.Settings.AutobackupInterval)
         SetIni("AutoBackupModule", "AutoBackupKeepFilesForDays", My.Settings.KeepForDays)
 
+
+        ' Voice
+        If My.Settings.VivoxEnabled Then
+            SetIni("VivoxVoice", "enabled", "true")
+        Else
+            SetIni("VivoxVoice", "enabled", "false")
+        End If
+        SetIni("VivoxVoice", "vivox_admin_user", My.Settings.Vivox_username)
+        SetIni("VivoxVoice", "vivox_admin_password", My.Settings.Vivox_password)
+
+        If My.Settings.WebStats Then
+            SetIni("WebStats", "enabled", "True")
+        Else
+            SetIni("WebStats", "enabled", "False")
+        End If
+
         SaveINI()
+
+
 
         ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
         'Regions - write all region.ini files with public IP and Public port
@@ -1291,6 +1343,23 @@ Public Class Form1
     End Function
     Private Function Boot(Show As AppWinStyle) As Boolean
 
+
+        If My.Settings.RobustEnabled And My.Settings.RobustDbConnection = "localhost" Then
+            Try
+                ChDir(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\")
+                RobustProcID = Shell("""" + MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\Robust.exe" + """", Show)
+                ChDir(MyFolder)
+            Catch ex As Exception
+                Print("Error: Robust did not start: " + ex.Message)
+                KillAll()
+                Buttons(StartButton)
+                Return False
+            End Try
+
+        End If
+
+
+
         Try
             ChDir(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\")
             OpensimProcID = Shell("""" + MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\StartOpensim.bat" + """", Show)
@@ -1429,6 +1498,15 @@ Public Class Form1
             Log("Warn:" + ex.Message)
         End Try
     End Sub
+    Public Sub RobustCommand(command As String)
+        Try
+            AppActivate(RobustProcID)
+            SendKeys.SendWait(command)
+        Catch ex As Exception
+            Log("Warn:" + ex.Message)
+        End Try
+    End Sub
+
     Private Sub SaySomething()
         Dim Prefix() As String = {
                                   "Mmmm?  Yawns ...",
