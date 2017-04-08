@@ -836,7 +836,7 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("A key goes here")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("OAuth Sandbox key")>  _
         Public Property GLSandKey() As String
             Get
                 Return CType(Me("GLSandKey"),String)
@@ -848,7 +848,7 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("A secret goes here")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("OAuth sandbox secret")>  _
         Public Property GLSandSecret() As String
             Get
                 Return CType(Me("GLSandSecret"),String)
@@ -932,7 +932,7 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("A key goes here")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("OAuth Production key")>  _
         Public Property GLProdKey() As String
             Get
                 Return CType(Me("GLProdKey"),String)
@@ -944,7 +944,7 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("A secret goes here")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("OAuth Production secret")>  _
         Public Property GLProdSecret() As String
             Get
                 Return CType(Me("GLProdSecret"),String)

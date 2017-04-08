@@ -87,6 +87,13 @@
         My.Settings.GLProdSecret = ProdSecretTextBox.Text
         My.Settings.Save()
     End Sub
+    Private Sub ProdKeyTextBox_Click(sender As Object, e As EventArgs) Handles ProdKeyTextBox.Click
+        ProdKeyTextBox.UseSystemPasswordChar = False
+    End Sub
+    Private Sub ProdKeyTextBox_TextChanged(sender As Object, e As EventArgs) Handles ProdKeyTextBox.TextChanged
+        My.Settings.GLProdKey = ProdKeyTextBox.Text
+        My.Settings.Save()
+    End Sub
 
     Private Sub ProductionCreateButton_Click(sender As Object, e As EventArgs) Handles ProductionCreateButton.Click
         Dim webAddress As String = "https://www.gloebit.com/signup/"
@@ -140,6 +147,8 @@
         Dim webAddress As String = "http://dev.gloebit.com/opensim/"
         Process.Start(webAddress)
     End Sub
+
+
 
 
 #End Region

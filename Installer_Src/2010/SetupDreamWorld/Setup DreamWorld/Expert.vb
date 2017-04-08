@@ -4,7 +4,6 @@ Imports System.Net
 Public Class Expert
 #Region "Load/Exit"
 
-
     Private Sub Loaded(sender As Object, e As EventArgs) Handles Me.Load
 
         'ports
@@ -78,14 +77,12 @@ Public Class Expert
         End Select
 
         ' Grid
-        If My.Settings.GridFolder = "Opensim" Then
-            V8Button.Checked = True
-            V9Button.Checked = False
-            Form1.Log("Info:0.8.2.1 enabled")
-        Else
+        If My.Settings.GridFolder <> "Opensim" Then
             V9Button.Checked = True
-            V8Button.Checked = False
             Form1.Log("Info:0.9.1 enabled")
+        Else
+            V8RadioButton1.Checked = True
+            Form1.Log("Info:0.8.2.1 enabled")
         End If
 
         GridName.Text = My.Settings.SimName
@@ -260,9 +257,9 @@ Public Class Expert
 #Region "V8/V9 Buttons"
 
     Private Sub V9Button_CheckedChanged(sender As Object, e As EventArgs) Handles V9Button.CheckedChanged
-
+        Debug.Print(V9Button.Checked.ToString)
         If V9Button.Checked Then
-            V8Button.Checked = False
+            V8RadioButton1.Checked = False
             My.Settings.GridFolder = "Opensim-0.9"
             My.Settings.Save()
             Try
@@ -274,7 +271,23 @@ Public Class Expert
         End If
     End Sub
 
+    Private Sub V8RadioButton1_CheckedChanged(sender As Object, e As EventArgs) Handles V8RadioButton1.CheckedChanged
+        Debug.Print(V8Button.Checked.ToString)
+        If V8Button.Checked Then
+            V9Button.Checked = False
+            My.Settings.GridFolder = "Opensim"
+            My.Settings.Save()
+            Try
+                My.Computer.FileSystem.RenameFile(Form1.MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\Regions\RegionConfig.ini", "Outworldz.ini")
+            Catch ex As Exception
+            End Try
+            Form1.ViewWebUI.Visible = True
+            Web.Enabled = True
+        End If
+    End Sub
+
     Private Sub V8Button_CheckedChanged(sender As Object, e As EventArgs) Handles V8Button.CheckedChanged
+        Debug.Print(V8Button.Checked.ToString)
         If V8Button.Checked Then
             V9Button.Checked = False
             My.Settings.GridFolder = "Opensim"
@@ -292,7 +305,7 @@ Public Class Expert
         ChangeGridGray()
     End Sub
     Private Sub Fullgrid_CheckedChanged(sender As Object, e As EventArgs) Handles FullgridButton.CheckedChanged
-        If FullgridButton.Checked = True Then
+        If FullgridButton.Checked Then
             StandaloneButton.Checked = False
 
             RobustDbName.Enabled = True
@@ -306,7 +319,7 @@ Public Class Expert
     End Sub
 
     Private Sub ChangeGridGray()
-        If StandaloneButton.Checked = True Then
+        If StandaloneButton.Checked Then
             StandaloneGroup.Enabled = True
             GridGroup.Enabled = False
         Else
@@ -407,6 +420,8 @@ Public Class Expert
         My.Settings.RobustDbPort = RobustDbPortTextbox.Text
         My.Settings.Save()
     End Sub
+
+
 
 #End Region
 

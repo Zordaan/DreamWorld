@@ -27,7 +27,6 @@ Partial Class Expert
         Me.Label22 = New System.Windows.Forms.Label()
         Me.Label20 = New System.Windows.Forms.Label()
         Me.StandaloneDbName = New System.Windows.Forms.TextBox()
-        Me.StandaloneButton = New System.Windows.Forms.RadioButton()
         Me.Label = New System.Windows.Forms.Label()
         Me.StandloneUsernameTextBox = New System.Windows.Forms.TextBox()
         Me.SimPortTextBox = New System.Windows.Forms.TextBox()
@@ -35,6 +34,7 @@ Partial Class Expert
         Me.SimConnectionTextbox = New System.Windows.Forms.TextBox()
         Me.DbPasswordTextBox = New System.Windows.Forms.TextBox()
         Me.Label23 = New System.Windows.Forms.Label()
+        Me.StandaloneButton = New System.Windows.Forms.RadioButton()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.RobustDbName = New System.Windows.Forms.TextBox()
         Me.Label16 = New System.Windows.Forms.Label()
@@ -100,6 +100,7 @@ Partial Class Expert
         Me.Label6 = New System.Windows.Forms.Label()
         Me.RobustUsernameTextBox = New System.Windows.Forms.TextBox()
         Me.GroupBox5 = New System.Windows.Forms.GroupBox()
+        Me.V8RadioButton1 = New System.Windows.Forms.RadioButton()
         Me.StandaloneGroup.SuspendLayout()
         Me.GroupBox1.SuspendLayout()
         Me.GroupBox7.SuspendLayout()
@@ -156,17 +157,6 @@ Partial Class Expert
         Me.StandaloneDbName.Name = "StandaloneDbName"
         Me.StandaloneDbName.Size = New System.Drawing.Size(107, 20)
         Me.StandaloneDbName.TabIndex = 30
-        '
-        'StandaloneButton
-        '
-        Me.StandaloneButton.AutoSize = True
-        Me.StandaloneButton.Location = New System.Drawing.Point(36, 73)
-        Me.StandaloneButton.Name = "StandaloneButton"
-        Me.StandaloneButton.Size = New System.Drawing.Size(101, 17)
-        Me.StandaloneButton.TabIndex = 14
-        Me.StandaloneButton.TabStop = True
-        Me.StandaloneButton.Text = "Standalone Grid"
-        Me.StandaloneButton.UseVisualStyleBackColor = True
         '
         'Label
         '
@@ -225,6 +215,17 @@ Partial Class Expert
         Me.Label23.Size = New System.Drawing.Size(81, 13)
         Me.Label23.TabIndex = 19
         Me.Label23.Text = "Sim Connection"
+        '
+        'StandaloneButton
+        '
+        Me.StandaloneButton.AutoSize = True
+        Me.StandaloneButton.Location = New System.Drawing.Point(36, 73)
+        Me.StandaloneButton.Name = "StandaloneButton"
+        Me.StandaloneButton.Size = New System.Drawing.Size(101, 17)
+        Me.StandaloneButton.TabIndex = 14
+        Me.StandaloneButton.TabStop = True
+        Me.StandaloneButton.Text = "Standalone Grid"
+        Me.StandaloneButton.UseVisualStyleBackColor = True
         '
         'Label1
         '
@@ -841,6 +842,7 @@ Partial Class Expert
         '
         'GroupBox5
         '
+        Me.GroupBox5.Controls.Add(Me.V8RadioButton1)
         Me.GroupBox5.Controls.Add(Me.V9Button)
         Me.GroupBox5.Controls.Add(Me.V8Button)
         Me.GroupBox5.Controls.Add(Me.FullgridButton)
@@ -851,6 +853,17 @@ Partial Class Expert
         Me.GroupBox5.TabIndex = 40
         Me.GroupBox5.TabStop = False
         Me.GroupBox5.Text = "Version"
+        '
+        'V8RadioButton1
+        '
+        Me.V8RadioButton1.AutoSize = True
+        Me.V8RadioButton1.Location = New System.Drawing.Point(122, 29)
+        Me.V8RadioButton1.Name = "V8RadioButton1"
+        Me.V8RadioButton1.Size = New System.Drawing.Size(71, 17)
+        Me.V8RadioButton1.TabIndex = 36
+        Me.V8RadioButton1.TabStop = True
+        Me.V8RadioButton1.Text = "V 0.8.2.1 "
+        Me.V8RadioButton1.UseVisualStyleBackColor = True
         '
         'Expert
         '
@@ -974,4 +987,5 @@ Partial Class Expert
     Friend WithEvents RobustUsernameTextBox As TextBox
     Friend WithEvents RobustConnectionTextBox As TextBox
     Friend WithEvents GroupBox5 As GroupBox
+    Friend WithEvents V8RadioButton1 As RadioButton
 End Class

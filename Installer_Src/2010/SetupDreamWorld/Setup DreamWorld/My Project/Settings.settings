@@ -198,10 +198,10 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="GLSandKey" Type="System.String" Scope="User">
-      <Value Profile="(Default)">A key goes here</Value>
+      <Value Profile="(Default)">OAuth Sandbox key</Value>
     </Setting>
     <Setting Name="GLSandSecret" Type="System.String" Scope="User">
-      <Value Profile="(Default)">A secret goes here</Value>
+      <Value Profile="(Default)">OAuth sandbox secret</Value>
     </Setting>
     <Setting Name="GLBOwnerEmail" Type="System.String" Scope="User">
       <Value Profile="(Default)">Your Email</Value>
@@ -222,10 +222,10 @@
       <Value Profile="(Default)">3306</Value>
     </Setting>
     <Setting Name="GLProdKey" Type="System.String" Scope="User">
-      <Value Profile="(Default)">A key goes here</Value>
+      <Value Profile="(Default)">OAuth Production key</Value>
     </Setting>
     <Setting Name="GLProdSecret" Type="System.String" Scope="User">
-      <Value Profile="(Default)">A secret goes here</Value>
+      <Value Profile="(Default)">OAuth Production secret</Value>
     </Setting>
   </Settings>
 </SettingsFile>
