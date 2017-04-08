@@ -35,17 +35,6 @@ Public Class UPNP
 
     End Enum
 
-    ''' <summary>
-    ''' Returns if UPnP is enabled.
-    ''' </summary>
-    ''' <value></value>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    Public ReadOnly Property UPNPEnabled As Boolean
-        Get
-            Return staticEnabled = True OrElse dynamicEnabled = True
-        End Get
-    End Property
 
     ''' <summary>
     ''' The UPnP Managed Class
@@ -60,8 +49,6 @@ Public Class UPNP
 
         'generate the static mappings
         Me.GetStaticMappings()
-        Me.GetDynamicMappings()
-
         Print()
 
     End Sub
@@ -89,21 +76,6 @@ Public Class UPNP
         End Try
     End Sub
 
-    ''' <summary>
-    ''' Returns all dynamic port mappings
-    ''' </summary>
-    ''' <remarks></remarks>
-    Private Sub GetDynamicMappings()
-        Try
-            dynamicMapping = upnpnat.DynamicPortMappingCollection()
-            If dynamicMapping Is Nothing Then
-                dynamicEnabled = False
-            End If
-        Catch ex As NotImplementedException
-            Log("Router does not support Dynamic mappings.")
-            dynamicEnabled = False
-        End Try
-    End Sub
 
     ''' <summary>
     ''' Adds a port mapping to the UPnP enabled device.
@@ -128,7 +100,7 @@ Public Class UPNP
         If Not staticEnabled Then Throw New ApplicationException("UPnP is not enabled, or there was an error with UPnP Initialization.")
 
         ' Okay, continue on
-        staticMapping.Add(port, prot.ToString(), port, localIP, True, desc)
+        staticMapping.Add(port, prot.ToString(), port, localIP, True, desc + " " + port.ToString)
 
     End Sub
 
@@ -192,7 +164,12 @@ Public Class UPNP
                 LocalIP = EndPoint.Address.ToString()
             End Using
         Catch ex As Exception
-            LocalIP = "127.0.0.1"
+            LocalIP = LocalIPForced()
+
+            If LocalIP = String.Empty Then
+                LocalIP = "127.0.0.1"
+            End If
+
         End Try
 
     End Function
@@ -202,7 +179,7 @@ Public Class UPNP
     ''' </summary>
     ''' <returns>String</returns>
     ''' <remarks></remarks>
-    Public Shared Function LocalIP1() As String
+    Public Shared Function LocalIPForced() As String
         Dim IPList As System.Net.IPHostEntry = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName)
 
         For Each IPaddress In IPList.AddressList
