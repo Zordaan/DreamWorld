@@ -84,18 +84,18 @@ Public Class Expert
         End Select
 
         ' Grid
-        If My.Settings.GridFolder <> "Opensim" Then
-            V9Button.Checked = True
-            Form1.Log("Info:0.9.1 enabled")
-        Else
-            V8RadioButton1.Checked = True
+        If My.Settings.GridFolder = "Opensim" Then
+            V8RadioButton.Checked = True
             Form1.Log("Info:0.8.2.1 enabled")
+        Else
+            V9RadioButton.Checked = True
+            Form1.Log("Info:0.9.1 enabled")
         End If
 
         StandaloneButton.Checked = Not My.Settings.RobustEnabled
         FullgridButton.Checked = My.Settings.RobustEnabled
 
-        My.Application.DoEvents
+        My.Application.DoEvents()
         GridName.Text = My.Settings.SimName
         DnsName.Text = My.Settings.DnsName
 
@@ -265,9 +265,9 @@ Public Class Expert
 
 #Region "V8/V9 Buttons"
 
-    Private Sub V9Button_CheckedChanged(sender As Object, e As EventArgs) Handles V9Button.CheckedChanged
-        Debug.Print(V9Button.Checked.ToString)
-        If V9Button.Checked Then
+    Private Sub V9Button_CheckedChanged(sender As Object, e As EventArgs) Handles V9RadioButton.CheckedChanged
+        Debug.Print(V9RadioButton.Checked.ToString)
+        If V9RadioButton.Checked Then
 
             My.Settings.GridFolder = "Opensim-0.9"
             My.Settings.Save()
@@ -284,9 +284,9 @@ Public Class Expert
         End If
     End Sub
 
-    Private Sub V8RadioButton1_CheckedChanged(sender As Object, e As EventArgs) Handles V8RadioButton1.CheckedChanged
-        Debug.Print(V8RadioButton1.Checked.ToString)
-        If V8RadioButton1.Checked Then
+    Private Sub V8RadioButton1_CheckedChanged(sender As Object, e As EventArgs) Handles V8RadioButton.CheckedChanged
+        Debug.Print(V8RadioButton.Checked.ToString)
+        If V8RadioButton.Checked Then
 
             My.Settings.GridFolder = "Opensim"
             My.Settings.Save()
@@ -330,17 +330,8 @@ Public Class Expert
 
 #Region "DNS"
 
-    Private Sub GridName_TextChanged_1(sender As Object, e As EventArgs) Handles GridName.TextChanged
-        My.Settings.SimName = GridName.Text
-        My.Settings.Save()
-    End Sub
 
-    Private Sub DnsName_TextChanged_1(sender As Object, e As EventArgs) Handles DnsName.TextChanged
-        My.Settings.PublicIP = DnsName.Text
-        My.Settings.Save()
-    End Sub
-
-    Private Sub DnsName_TextChanged(sender As Object, e As EventArgs) Handles DnsName.Click
+    Private Sub DNSButton_Click(sender As Object, e As EventArgs) Handles DNSButton.Click
         Dim F As New DNSName
         F.Show()
     End Sub
@@ -419,6 +410,19 @@ Public Class Expert
         My.Settings.RobustDbPort = RobustDbPortTextbox.Text
         My.Settings.Save()
     End Sub
+
+    Private Sub PictureBox1_Click(sender As Object, e As EventArgs) Handles PictureBox1.Click
+        Dim webAddress As String = Form1.Domain + "/Outworldz_installer/FullGrid.htm"
+        Process.Start(webAddress)
+    End Sub
+
+    Private Sub PictureBox5_Click(sender As Object, e As EventArgs) Handles PictureBox5.Click
+        Dim webAddress As String = Form1.Domain + "/Outworldz_installer/technical.htm#Grid"
+        Process.Start(webAddress)
+    End Sub
+
+
+
 
 
 

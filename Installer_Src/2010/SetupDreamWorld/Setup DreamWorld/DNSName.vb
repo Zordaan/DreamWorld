@@ -51,25 +51,30 @@ Public Class DNSName
 
             NextNameButton.Text = "Saving..."
 
-            Form1.RegisterName(TextBox1.Text)
+            Dim newname = Form1.RegisterName(TextBox1.Text)
 
             NextNameButton.Text = "Next Name"
 
-            Dim IP = Form1.DoGetHostAddresses(TextBox1.Text)
+            Dim IP = Form1.DoGetHostAddresses(newname)
             Dim address As IPAddress = Nothing
             If IPAddress.TryParse(IP, address) Then
-                MsgBox("XX")
-                My.Settings.DnsName = TextBox1.Text
+
+                My.Settings.DnsName = newname
                 My.Settings.Save()
-                Expert.DnsName.Text = TextBox1.Text
+
+                Application.DoEvents()
                 Me.Close()
+                Return
             End If
-            My.Settings.DnsName = TextBox1.Text
+            MsgBox("Could not parse DNS Name [" + newname + "] . The IP address was invalid: [" + IP + "]")
+            My.Settings.DnsName = ""
             My.Settings.Save()
+            Me.Close()
+            Return
         Else
-            My.Settings.DnsName = TextBox1.Text
+            My.Settings.DnsName = ""
             My.Settings.Save()
-            Expert.DnsName.Text = TextBox1.Text
+
             Me.Close()
         End If
 
@@ -94,7 +99,7 @@ Public Class DNSName
     End Sub
 
     Private Sub PictureBox4_Click(sender As Object, e As EventArgs) Handles PictureBox4.Click
-        Dim webAddress As String = Form1.Domain + "/Outworldz_installer/technical.htm#DNSName" '!!!
+        Dim webAddress As String = Form1.Domain + "/Outworldz_installer/technical.htm#Grid" '!!!
         Process.Start(webAddress)
     End Sub
 

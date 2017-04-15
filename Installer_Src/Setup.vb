@@ -40,8 +40,8 @@ Public Class Form1
 
 #Region "Declarations"
 
-    Dim MyVersion As String = "1.64"
-    Dim DebugPath As String = "C:\Opensim\Outworldz Test" ' Note that this uses spaces
+    Dim MyVersion As String = "1.65"
+    Dim DebugPath As String = "C:\Opensim\Outworldz" ' Note that this uses spaces
     Public Domain As String = "http://www.outworldz.com"
     Dim RevNotesFile As String = "Update_Notes_" + MyVersion + ".rtf"
     Private gFailDebug1 = False ' set to true to fail diagnostic
@@ -685,8 +685,12 @@ Public Class Form1
         parser = New FileIniDataParser()
         parser.Parser.Configuration.SkipInvalidLines = True
         parser.Parser.Configuration.CommentString = delim ' Opensim uses semicolons
+        Try
+            Data = parser.ReadFile(filepath)
+        Catch ex As Exception
+            MsgBox("Cannot read an INI file - program is missing! " + ex.Message)
+        End Try
 
-        Data = parser.ReadFile(filepath)
         gINI = filepath
     End Sub
 
@@ -729,13 +733,16 @@ Public Class Form1
         Dim INIname As String
 
         ' Diva 0.8.2 used MyWorld.ini all other versions use StandaloneCommon.ini
-        Dim prefix = MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\"
+        Dim prefix As String
         If My.Settings.GridFolder = "Opensim-0.9" And Not My.Settings.RobustEnabled Then
-            INIname = "config-include\StandaloneCommon.ini"
+            prefix = MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config-include\"
+            INIname = "StandaloneCommon.ini"
         ElseIf My.Settings.GridFolder = "Opensim-0.9" And My.Settings.RobustEnabled Then
+            prefix = MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\"
             INIname = "Robust.ini"
         Else
-            INIname = "config-include\MyWorld.ini"
+            prefix = MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config-include\"
+            INIname = "MyWorld.ini"
         End If
 
         Try
@@ -770,14 +777,20 @@ Public Class Form1
             'close your reader
             reader.Close()
             Try
-                My.Computer.FileSystem.DeleteFile(prefix + INIname)
+                Try
+                    My.Computer.FileSystem.DeleteFile(prefix + INIname + ".bak")
+                Catch ex As Exception
+                    Log("Info: Found a stuck file left over from a crash: " + ex.Message)
+                End Try
+                My.Computer.FileSystem.RenameFile(prefix + INIname, INIname + ".bak")
                 My.Computer.FileSystem.RenameFile(prefix + "File.tmp", INIname)
             Catch ex As Exception
                 Log("Error:SetDefault sims could not rename the file:" + ex.Message)
+                My.Computer.FileSystem.RenameFile(prefix + INIname + ".bak", INIname)
             End Try
 
         Catch ex As Exception
-            MsgBox("Warn:Cound not set default sim for visitors. " + ex.Message)
+            MsgBox("Warn:Could not set default sim for visitors. " + ex.Message)
         End Try
 
 
@@ -819,7 +832,7 @@ Public Class Form1
 
         ' 0.8.2.1
         If My.Settings.GridFolder = "Opensim" Then
-            LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config_include\MyWorld.ini", ";")
+            LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config-include\MyWorld.ini", ";")
             ConnectionString = """" _
             + "Data Source=" + My.Settings.DBSource _
             + ";Database=" + My.Settings.DBName _
@@ -834,7 +847,7 @@ Public Class Form1
         Else    ' 0.9.0
 
             ' Standalones
-            LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config-include\standlonecommon.ini", ";")
+            LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config-include\standalonecommon.ini", ";")
             ConnectionString = """" _
                 + "Data Source=" + My.Settings.DBSource _
                 + ";Database=" + My.Settings.DBName _
@@ -884,6 +897,7 @@ Public Class Form1
         ' set the defaults in the INI for the viewer to use. Painful to do as it's a Left hand side edit 
 
         SetDefaultSims()
+
 
         ' Opensim.ini
         LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\Opensim.ini", ";")
@@ -998,7 +1012,7 @@ Public Class Form1
             If My.Settings.GridFolder = "Opensim-0.9" Then
                 SetIni("Architecture", "Include-Architecture", "config-include/StandaloneHypergrid.ini")
             Else
-                SetIni("Architecture", "Include-Architecture", "config-include/DivaPreferences.ini")
+                SetIni("Architecture", "Include-Architecture", "config-include/StandaloneHypergrid.ini")
             End If
 
         End If
@@ -1040,9 +1054,6 @@ Public Class Form1
             ViewWebUI.Visible = True
             LoadIni(MyFolder & "\OutworldzFiles\" & My.Settings.GridFolder & "\bin\config-include\MyWorld.ini", ";")
         End If
-
-
-
 
 
         ' Viewer UI shows the full viewer UI
@@ -2828,7 +2839,7 @@ Public Class Form1
             pub = "0"
         End If
         Try
-            Checkname = client.DownloadString("http://outworldz.net/dns.plx/?GridName=" + name + "&Public=" + pub + "&r=" + Random())
+            Checkname = client.DownloadString("http://outworldz.net/dns.plx/?GridName=" + name + "&Public=" + pub + "&Port=" + My.Settings.HttpPort + "&r=" + Random())
         Catch ex As Exception
             Log("Warn:Cannot check the DNS Name" + ex.Message)
         End Try

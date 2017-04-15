@@ -308,11 +308,6 @@ Public Class AdvancedForm
         Process.Start(webAddress)
     End Sub
 
-    Private Sub PictureBox5_Click(sender As Object, e As EventArgs)
-        Dim webAddress As String = Form1.Domain + "/Outworldz_installer/technical.htm#Grid"
-        Process.Start(webAddress)
-    End Sub
-
     Private Sub ExpertButton1_Click(sender As Object, e As EventArgs) Handles ExpertButton1.Click
         Dim ActualForm As New Expert
         Dim X As Integer = 300
