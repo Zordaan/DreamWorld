@@ -1012,7 +1012,7 @@ Public Class Form1
             If My.Settings.GridFolder = "Opensim-0.9" Then
                 SetIni("Architecture", "Include-Architecture", """" + "config-include/StandaloneHypergrid.ini" + """")
             Else
-                SetIni("Architecture", "Include-Architecture", """" + "config-include/MyWorld.ini" + """")
+                SetIni("Architecture", "Include-Architecture", """" + "config-include/DivaPreferences.ini" + """")
             End If
 
         End If
