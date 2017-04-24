@@ -780,7 +780,7 @@ Public Class Form1
                 Try
                     My.Computer.FileSystem.DeleteFile(prefix + INIname + ".bak")
                 Catch ex As Exception
-                    Log("Info: Found a stuck file left over from a crash: " + ex.Message)
+                    'Nothing to do, this was just cleanup
                 End Try
                 My.Computer.FileSystem.RenameFile(prefix + INIname, INIname + ".bak")
                 My.Computer.FileSystem.RenameFile(prefix + "File.tmp", INIname)
@@ -1006,13 +1006,13 @@ Public Class Form1
 
         If My.Settings.RobustEnabled Then
             If My.Settings.GridFolder = "Opensim-0.9" Then
-                SetIni("Architecture", "Include-Architecture", "config-include/GridHypergrid.ini")
+                SetIni("Architecture", "Include-Architecture", """" + "config-include/GridHypergrid.ini" + """")
             End If
         Else
             If My.Settings.GridFolder = "Opensim-0.9" Then
-                SetIni("Architecture", "Include-Architecture", "config-include/StandaloneHypergrid.ini")
+                SetIni("Architecture", "Include-Architecture", """" + "config-include/StandaloneHypergrid.ini" + """")
             Else
-                SetIni("Architecture", "Include-Architecture", "config-include/StandaloneHypergrid.ini")
+                SetIni("Architecture", "Include-Architecture", """" + "config-include/MyWorld.ini" + """")
             End If
 
         End If
@@ -2876,8 +2876,6 @@ Public Class Form1
         ChDir(MyFolder)
 
     End Sub
-
-
 
 #End Region
 
