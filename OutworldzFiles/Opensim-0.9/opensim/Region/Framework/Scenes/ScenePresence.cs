@@ -170,6 +170,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_previusParcelHide = false;
         private bool m_currentParcelHide = false;
         private object parcelLock = new Object();
+        public double ParcelDwellTickMS;
 
         public UUID currentParcelUUID
         {
@@ -182,6 +183,7 @@ namespace OpenSim.Region.Framework.Scenes
                     bool checksame = true;
                     if (value != m_currentParcelUUID)
                     {
+                        ParcelDwellTickMS = Util.GetTimeStampMS();
                         m_previusParcelHide = m_currentParcelHide;
                         m_previusParcelUUID = m_currentParcelUUID;
                         checksame = false;
@@ -277,8 +279,11 @@ namespace OpenSim.Region.Framework.Scenes
         private bool MouseDown = false;
         public Vector3 lastKnownAllowedPosition;
         public bool sentMessageAboutRestrictedParcelFlyingDown;
+
         public Vector4 CollisionPlane = Vector4.UnitW;
 
+        public Vector4 m_lastCollisionPlane = Vector4.UnitW;
+        private byte m_lastState;
         private Vector3 m_lastPosition;
         private Quaternion m_lastRotation;
         private Vector3 m_lastVelocity;
@@ -362,6 +367,7 @@ namespace OpenSim.Region.Framework.Scenes
         //PauPaw:Proper PID Controler for autopilot************
         public bool MovingToTarget { get; private set; }
         public Vector3 MoveToPositionTarget { get; private set; }
+        private double m_delayedStop = -1.0;
 
         /// <summary>
         /// Controls whether an avatar automatically moving to a target will land when it gets there (if flying).
@@ -968,6 +974,10 @@ namespace OpenSim.Region.Framework.Scenes
                 m_inTransit = value;
             }
         }
+        // this is is only valid if IsInTransit is true
+        // only false on HG tps
+        // used work arounf viewers asking source region about destination user
+        public bool IsInLocalTransit {get; set; }
 
 
         /// <summary>
@@ -1037,6 +1047,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_uuid = client.AgentId;
             LocalId = m_scene.AllocateLocalId();
             LegacySitOffsets = m_scene.LegacySitOffsets;
+            IsInLocalTransit = true;
 
             UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, m_uuid);
             if (account != null)
@@ -1816,6 +1827,7 @@ namespace OpenSim.Region.Framework.Scenes
             lock (m_knownChildRegions)
             {
                 m_knownChildRegionsSizeInfo.Clear();
+
                 foreach (GridRegion region in regionsList)
                 {
                     spRegionSizeInfo sizeInfo = new spRegionSizeInfo();
@@ -1882,7 +1894,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                return new List<ulong>(KnownRegions.Keys);
+                lock (m_knownChildRegions)
+                    return new List<ulong>(m_knownChildRegions.Keys);
             }
         }
 
@@ -2141,6 +2154,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_previusParcelUUID = UUID.Zero;
                 m_currentParcelHide = false;
                 m_currentParcelUUID = UUID.Zero;
+                ParcelDwellTickMS = Util.GetTimeStampMS();
 
                 if(!IsNPC)
                 {
@@ -2269,18 +2283,13 @@ namespace OpenSim.Region.Framework.Scenes
                     m_lastChildAgentUpdateDrawDistance = DrawDistance;
                     m_lastChildAgentUpdatePosition = AbsolutePosition;
                     m_childUpdatesBusy = false; // allow them
-
-
                 }
 
                 m_log.DebugFormat("[CompleteMovement] openChildAgents: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-
-
                 // send the rest of the world
                 if (m_teleportFlags > 0 && !IsNPC || m_currentParcelHide)
                     SendInitialDataToMe();
-                
 
                 // priority uses avatar position only
 //                m_reprioritizationLastPosition = AbsolutePosition;
@@ -2453,7 +2462,9 @@ namespace OpenSim.Region.Framework.Scenes
             // This is irritating.  Really.
             if (!AbsolutePosition.IsFinite())
             {
-                RemoveFromPhysicalScene();
+                bool isphysical = PhysicsActor != null;
+                if(isphysical)
+                    RemoveFromPhysicalScene();
                 m_log.Error("[AVATAR]: NonFinite Avatar position detected... Reset Position. Mantis this please. Error #9999902");
 
                 m_pos = m_LastFinitePos;
@@ -2465,7 +2476,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.Error("[AVATAR]: NonFinite Avatar position detected... Reset Position. Mantis this please. Error #9999903");
                 }
 
-                AddToPhysicalScene(false);
+                if(isphysical)
+                    AddToPhysicalScene(false);
             }
             else
             {
@@ -2725,7 +2737,6 @@ namespace OpenSim.Region.Framework.Scenes
                     agent_control_v3.Z = 0;
 //                else if(AgentControlStopActive %% Velocity.Z <0.01f)
 
-
 //                m_log.DebugFormat("[SCENE PRESENCE]: MovementFlag {0} for {1}", MovementFlag, Name);
 
                 // If the agent update does move the avatar, then calculate the force ready for the velocity update,
@@ -2734,6 +2745,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // held down AGENT_CONTROL_STOP whilst normal walking/running).  However, we do not want to update
                 // if the user rotated whilst holding down AGENT_CONTROL_STOP when already still (which locks the
                 // avatar location in place).
+
                 if (update_movementflag
                     || (update_rotation && DCFlagKeyPressed && (!AgentControlStopActive || MovementFlag != 0)))
                 {
@@ -2750,17 +2762,27 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-                        AddNewMovement(agent_control_v3);
+                        if(MovingToTarget ||
+                                 (Animator.currentControlState != ScenePresenceAnimator.motionControlStates.flying &&
+                                    Animator.currentControlState != ScenePresenceAnimator.motionControlStates.onsurface)
+                                 )
+                            AddNewMovement(agent_control_v3);
+                        else
+                        {
+                            if (MovementFlag != 0)
+                                AddNewMovement(agent_control_v3);
+                            else
+                                m_delayedStop = Util.GetTimeStampMS() + 200.0;
+                        }
                     }
-
                 }
-
-                if (update_movementflag && ParentID == 0)
+/*
+                if (update_movementflag && ParentID == 0 && m_delayedStop < 0)
                 {
 //                    m_log.DebugFormat("[SCENE PRESENCE]: Updating movement animations for {0}", Name);
                     Animator.UpdateMovementAnimations();
                 }
-
+*/
                 SendControlsToScripts(flagsForScripts);
             }
 
@@ -2799,16 +2821,13 @@ namespace OpenSim.Region.Framework.Scenes
             CameraAtAxis = agentData.CameraAtAxis;
             CameraLeftAxis = agentData.CameraLeftAxis;
             CameraUpAxis = agentData.CameraUpAxis;
-            Quaternion camRot = Util.Axes2Rot(CameraAtAxis, CameraLeftAxis, CameraUpAxis);
-            CameraRotation = camRot;
-
-            // The Agent's Draw distance setting
-            // When we get to the point of re-computing neighbors everytime this
-            // changes, then start using the agent's drawdistance rather than the
-            // region's draw distance.
-
             DrawDistance = agentData.Far;
 
+            CameraAtAxis.Normalize();
+            CameraLeftAxis.Normalize();
+            CameraUpAxis.Normalize();
+            Quaternion camRot = Util.Axes2Rot(CameraAtAxis, CameraLeftAxis, CameraUpAxis);
+            CameraRotation = camRot;
 
             // Check if Client has camera in 'follow cam' or 'build' mode.
 //            Vector3 camdif = (Vector3.One * Rotation - Vector3.One * CameraRotation);
@@ -2934,31 +2953,32 @@ namespace OpenSim.Region.Framework.Scenes
                         Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN));
 
                     MovementFlag &= noMovFlagsMask;
-                    AgentControlFlags &= noMovFlagsMask;
+                    uint tmpAgentControlFlags = (uint)m_AgentControlFlags;
+                    tmpAgentControlFlags &= noMovFlagsMask;
 
                     if (LocalVectorToTarget3D.X < 0) //MoveBack
                     {
                         MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
-                        AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
+                        tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
                         updated = true;
                     }
                     else if (LocalVectorToTarget3D.X > 0) //Move Forward
                     {
                         MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
-                        AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
+                        tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
                         updated = true;
                     }
 
                     if (LocalVectorToTarget3D.Y > 0) //MoveLeft
                     {
                         MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
-                        AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
+                        tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
                         updated = true;
                     }
                     else if (LocalVectorToTarget3D.Y < 0) //MoveRight
                     {
                         MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
-                        AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
+                        tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
                         updated = true;
                     }
 
@@ -2982,6 +3002,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                            "[SCENE PRESENCE]: HandleMoveToTargetUpdate adding {0} to move vector {1} for {2}",
 //                            LocalVectorToTarget3D, agent_control_v3, Name);
 
+                    m_AgentControlFlags = (AgentManager.ControlFlags) tmpAgentControlFlags;
                     agent_control_v3 += LocalVectorToTarget3D;
                 }
                 catch (Exception e)
@@ -3009,6 +3030,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </param>
         public void MoveToTarget(Vector3 pos, bool noFly, bool landAtTarget)
         {
+            m_delayedStop = -1;
+
             if (SitGround)
                 StandUp();
 
@@ -3664,7 +3687,7 @@ namespace OpenSim.Region.Framework.Scenes
             //            m_log.DebugFormat(
             //                "[SCENE PRESENCE]: Adding new movement {0} with rotation {1}, thisAddSpeedModifier {2} for {3}",
             //                vec, Rotation, thisAddSpeedModifier, Name);
-
+            m_delayedStop = -1;
             // rotate from avatar coord space to world
             Quaternion rot = Rotation;
             if (!Flying && PresenceType != PresenceType.Npc)
@@ -3682,7 +3705,7 @@ namespace OpenSim.Region.Framework.Scenes
                 direc.Z = 0f; // Prevent camera WASD up.
 
             // odd rescalings
-            direc *= 0.03f * 128f * SpeedModifier * thisAddSpeedModifier;
+            direc *= 0.032f * 128f * SpeedModifier * thisAddSpeedModifier;
 
             //            m_log.DebugFormat("[SCENE PRESENCE]: Force to apply before modification was {0} for {1}", direc, Name);
 
@@ -3747,9 +3770,18 @@ namespace OpenSim.Region.Framework.Scenes
 
             if(MovingToTarget)
             {
+                m_delayedStop = -1;
                 Vector3 control = Vector3.Zero;
                 if(HandleMoveToTargetUpdate(1f, ref control))
                     AddNewMovement(control);
+            }
+            else if(m_delayedStop > 0)
+            {
+                if(IsSatOnObject)
+                    m_delayedStop = -1;  
+                else
+                if(Util.GetTimeStampMS() > m_delayedStop)
+                    AddNewMovement(Vector3.Zero);
             }
 
             if (Appearance.AvatarSize != m_lastSize)
@@ -3757,29 +3789,21 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Send terse position update if not sitting and position, velocity, or rotation
             //      has changed significantly from last sent update
-            if (!IsSatOnObject && (
-                        !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE)
-                        || !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE)
-                        || !m_pos.ApproxEquals(m_lastPosition, POSITION_LARGETOLERANCE)
-                        // if velocity is zero and it wasn't zero last time, send the update
-                        || (Velocity == Vector3.Zero && m_lastVelocity != Vector3.Zero)
-                        // if position has moved just a little and velocity is very low, send  the update
-                        || (!m_pos.ApproxEquals(m_lastPosition, POSITION_SMALLTOLERANCE) && Velocity.LengthSquared() < LOWVELOCITYSQ )
-                ) )
-            {
-/*
             if (!IsSatOnObject)
             {
                 // this does need to be more complex later
                 Vector3 vel = Velocity;
                 Vector3 dpos = m_pos - m_lastPosition;
-                if(     Math.Abs(vel.X - m_lastVelocity.X) > VELOCITY_TOLERANCE ||
+                if(     State != m_lastState ||
+                        Math.Abs(vel.X - m_lastVelocity.X) > VELOCITY_TOLERANCE ||
                         Math.Abs(vel.Y - m_lastVelocity.Y) > VELOCITY_TOLERANCE ||
                         Math.Abs(vel.Z - m_lastVelocity.Z) > VELOCITY_TOLERANCE ||
 
                         Math.Abs(m_bodyRot.X - m_lastRotation.X) > ROTATION_TOLERANCE ||
                         Math.Abs(m_bodyRot.Y - m_lastRotation.Y) > ROTATION_TOLERANCE ||
                         Math.Abs(m_bodyRot.Z - m_lastRotation.Z) > ROTATION_TOLERANCE ||
+                       
+                        (vel ==  Vector3.Zero && m_lastVelocity != Vector3.Zero) ||
 
                         Math.Abs(dpos.X) > POSITION_LARGETOLERANCE ||
                         Math.Abs(dpos.Y) > POSITION_LARGETOLERANCE ||
@@ -3789,11 +3813,15 @@ namespace OpenSim.Region.Framework.Scenes
                             Math.Abs(dpos.Y) > POSITION_SMALLTOLERANCE ||
                             Math.Abs(dpos.Z) > POSITION_SMALLTOLERANCE)
                             && vel.LengthSquared() < LOWVELOCITYSQ
-                        ))
+                        ) ||
+
+                        Math.Abs(CollisionPlane.X - m_lastCollisionPlane.X) > POSITION_SMALLTOLERANCE ||
+                        Math.Abs(CollisionPlane.Y - m_lastCollisionPlane.Y) > POSITION_SMALLTOLERANCE ||
+                        Math.Abs(CollisionPlane.W - m_lastCollisionPlane.W) > POSITION_SMALLTOLERANCE
+                        )
                 {
-*/
                     SendTerseUpdateToAllClients();
-//                }
+                }
             }
             CheckForSignificantMovement();
         }
@@ -3889,11 +3917,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendTerseUpdateToAllClients()
         {
-            m_scene.ForEachScenePresence(SendTerseUpdateToAgent);
-            // Update the "last" values
+            m_lastState = State;
             m_lastPosition = m_pos;
             m_lastRotation = m_bodyRot;
             m_lastVelocity = Velocity;
+            m_lastCollisionPlane = CollisionPlane;
+
+            m_scene.ForEachScenePresence(SendTerseUpdateToAgent);
+            // Update the "last" values
             TriggerScenePresenceUpdated();
         }
 
@@ -4401,72 +4432,75 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
-        /* useless. Either use MakeChild or delete the presence
-                public void Reset()
-                {
-        //            m_log.DebugFormat("[SCENE PRESENCE]: Resetting {0} in {1}", Name, Scene.RegionInfo.RegionName);
-
-                    // Put the child agent back at the center
-                    AbsolutePosition
-                        = new Vector3(((float)m_scene.RegionInfo.RegionSizeX * 0.5f), ((float)m_scene.RegionInfo.RegionSizeY * 0.5f), 70);
-
-                    Animator.ResetAnimations();
-                }
-        */
         /// <summary>
         /// Computes which child agents to close when the scene presence moves to another region.
         /// Removes those regions from m_knownRegions.
         /// </summary>
-        /// <param name="newRegionX">The new region's x on the map</param>
-        /// <param name="newRegionY">The new region's y on the map</param>
+        /// <param name="newRegionHandle">The new region's handle</param>
+        /// <param name="newRegionSizeX">The new region's size x</param>
+        /// <param name="newRegionSizeY">The new region's size y</param>
         /// <returns></returns>
-        public void CloseChildAgents(bool logout, ulong newRegionHandle, int newRegionSizeX, int newRegionSizeY)
+        public List<ulong> GetChildAgentsToClose(ulong newRegionHandle, int newRegionSizeX, int newRegionSizeY)
         {
-            uint newRegionX, newRegionY;
+            ulong curRegionHandle = m_scene.RegionInfo.RegionHandle;
             List<ulong> byebyeRegions = new List<ulong>();
+
+            if(newRegionHandle == curRegionHandle) //??
+                return byebyeRegions;
+
+            uint newRegionX, newRegionY;
             List<ulong> knownRegions = KnownRegionHandles;
             m_log.DebugFormat(
                 "[SCENE PRESENCE]: Closing child agents. Checking {0} regions in {1}",
                 knownRegions.Count, Scene.RegionInfo.RegionName);
 
             Util.RegionHandleToRegionLoc(newRegionHandle, out newRegionX, out newRegionY);
-
             uint x, y;
             spRegionSizeInfo regInfo;
 
             foreach (ulong handle in knownRegions)
             {
-                // Don't close the agent on this region yet
-                if (handle != Scene.RegionInfo.RegionHandle)
+                if(newRegionY == 0) // HG
+                    byebyeRegions.Add(handle);
+                else if(handle == curRegionHandle)
                 {
-                    if (logout)
+                    RegionInfo curreg = m_scene.RegionInfo;
+                    if (Util.IsOutsideView(255, curreg.RegionLocX, newRegionX, curreg.RegionLocY, newRegionY,
+                            (int)curreg.RegionSizeX, (int)curreg.RegionSizeX, newRegionSizeX, newRegionSizeY))
+                    {
                         byebyeRegions.Add(handle);
+                    }
+                }
+                else    
+                {
+                    Util.RegionHandleToRegionLoc(handle, out x, out y);
+                    if (m_knownChildRegionsSizeInfo.TryGetValue(handle, out regInfo))
+                    {
+//                            if (Util.IsOutsideView(RegionViewDistance, x, newRegionX, y, newRegionY,
+                        // for now need to close all but first order bc RegionViewDistance it the target value not ours
+                        if (Util.IsOutsideView(255, x, newRegionX, y, newRegionY,
+                            regInfo.sizeX, regInfo.sizeY, newRegionSizeX, newRegionSizeY))
+                        {
+                            byebyeRegions.Add(handle);
+                        }
+                    }
                     else
                     {
-                        Util.RegionHandleToRegionLoc(handle, out x, out y);
-                        if (m_knownChildRegionsSizeInfo.TryGetValue(handle, out regInfo))
+//                        if (Util.IsOutsideView(RegionViewDistance, x, newRegionX, y, newRegionY,
+                        if (Util.IsOutsideView(255, x, newRegionX, y, newRegionY,
+                            (int)Constants.RegionSize, (int)Constants.RegionSize, newRegionSizeX, newRegionSizeY))
                         {
-                            if (Util.IsOutsideView(RegionViewDistance, x, newRegionX, y, newRegionY,
-                                regInfo.sizeX, regInfo.sizeY, newRegionSizeX, newRegionSizeY))
-                            {
-                                byebyeRegions.Add(handle);
-                            }
-                        }
-                        else
-                        {
-                            if (Util.IsOutsideView(RegionViewDistance, x, newRegionX, y, newRegionY,
-                                (int)Constants.RegionSize, (int)Constants.RegionSize, newRegionSizeX, newRegionSizeY))
-                            {
-                                byebyeRegions.Add(handle);
-                                // this should not be here
-//                                if(eventQueue != null)
-//                                    eventQueue.DisableSimulator(handle,UUID);
-                            }
+                            byebyeRegions.Add(handle);
                         }
                     }
                 }
             }
+            return byebyeRegions;
+        }
 
+        public void CloseChildAgents(List<ulong> byebyeRegions)
+        {
+            byebyeRegions.Remove(Scene.RegionInfo.RegionHandle);
             if (byebyeRegions.Count > 0)
             {
                 m_log.Debug("[SCENE PRESENCE]: Closing " + byebyeRegions.Count + " child agents");
@@ -4672,6 +4706,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 cAgent.CrossingFlags = crossingFlags;
                 cAgent.CrossingFlags |= 1;
+                cAgent.CrossExtraFlags = 0;
+                if((LastCommands & ScriptControlled.CONTROL_LBUTTON) != 0)
+                    cAgent.CrossExtraFlags |= 1;
+                if((LastCommands & ScriptControlled.CONTROL_ML_LBUTTON) != 0)
+                    cAgent.CrossExtraFlags |= 2;
             }
             else
                  cAgent.CrossingFlags = 0;
@@ -4681,7 +4720,10 @@ namespace OpenSim.Region.Framework.Scenes
                 cAgent.agentCOF = COF;
                 cAgent.ActiveGroupID = ControllingClient.ActiveGroupId;
                 cAgent.ActiveGroupName = ControllingClient.ActiveGroupName;
-                cAgent.ActiveGroupTitle = Grouptitle;
+                if(Grouptitle == null)
+                    cAgent.ActiveGroupTitle = String.Empty;
+                else
+                    cAgent.ActiveGroupTitle = Grouptitle;
             }
         }
 
@@ -4783,6 +4825,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             crossingFlags = cAgent.CrossingFlags;
             gotCrossUpdate = (crossingFlags != 0);
+            if(gotCrossUpdate)
+            {
+                LastCommands &= ~(ScriptControlled.CONTROL_LBUTTON | ScriptControlled.CONTROL_ML_LBUTTON);
+                if((cAgent.CrossExtraFlags & 1) != 0)
+                    LastCommands |= ScriptControlled.CONTROL_LBUTTON;
+                if((cAgent.CrossExtraFlags & 2) != 0)
+                    LastCommands |= ScriptControlled.CONTROL_ML_LBUTTON;
+                MouseDown = (cAgent.CrossExtraFlags & 3) != 0;
+            }
 
             haveGroupInformation = false;
             // using this as protocol detection don't want to mess with the numbers for now
@@ -4877,6 +4928,7 @@ namespace OpenSim.Region.Framework.Scenes
             PhysicsActor.OnOutOfBounds += OutOfBoundsCall; // Called for PhysicsActors when there's something wrong
             PhysicsActor.SubscribeEvents(100);
             PhysicsActor.LocalID = LocalId;
+            PhysicsActor.SetAlwaysRun = m_setAlwaysRun;
         }
 
         private void OutOfBoundsCall(Vector3 pos)
@@ -4914,8 +4966,8 @@ namespace OpenSim.Region.Framework.Scenes
 
 //                if (m_updateCount > 0)
 //                {
-            if (Animator != null && Animator.UpdateMovementAnimations())
-                TriggerScenePresenceUpdated();
+//            if (Animator != null && Animator.UpdateMovementAnimations())
+//                TriggerScenePresenceUpdated();
 //                    m_updateCount--;
 //                }
 
@@ -5751,29 +5803,21 @@ namespace OpenSim.Region.Framework.Scenes
                 if (scriptedcontrols.Count <= 0)
                     return;
 
-                ScriptControlled allflags = ScriptControlled.CONTROL_ZERO;
-
-                if (MouseDown)
+                ScriptControlled allflags;
+                // convert mouse from edge to level
+                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP) != 0 ||
+                            (flags & unchecked((uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_UP)) != 0)
                 {
-                    allflags = LastCommands & (ScriptControlled.CONTROL_ML_LBUTTON | ScriptControlled.CONTROL_LBUTTON);
-                    if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP) != 0 || (flags & unchecked((uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_UP)) != 0)
-                    {
-                        allflags = ScriptControlled.CONTROL_ZERO;
-                        MouseDown = true;
-                    }
+                    allflags = ScriptControlled.CONTROL_ZERO;
                 }
+                else // recover last state of mouse
+                    allflags = LastCommands & (ScriptControlled.CONTROL_ML_LBUTTON | ScriptControlled.CONTROL_LBUTTON);
 
                 if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_DOWN) != 0)
-                {
                     allflags |= ScriptControlled.CONTROL_ML_LBUTTON;
-                    MouseDown = true;
-                }
 
                 if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0)
-                {
                     allflags |= ScriptControlled.CONTROL_LBUTTON;
-                    MouseDown = true;
-                }
 
                 // find all activated controls, whether the scripts are interested in them or not
                 if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS) != 0)
@@ -5837,6 +5881,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 LastCommands = allflags;
+                MouseDown = (allflags & (ScriptControlled.CONTROL_ML_LBUTTON | ScriptControlled.CONTROL_LBUTTON)) != 0;
             }
         }
 

@@ -844,6 +844,7 @@ Public Class Form1
             SetIni("DatabaseService", "ConnectionString", ConnectionString)
             SaveINI()
 
+
         Else    ' 0.9.0
 
             ' Standalones
@@ -1039,6 +1040,18 @@ Public Class Form1
         SetIni("Gloebit", "GLBSecret", My.Settings.GLSandSecret)
         SetIni("Gloebit", "GLBOwnerName", My.Settings.GLBOwnerName)
         SetIni("Gloebit", "GLBOwnerEmail", My.Settings.GLBOwnerEmail)
+
+
+        ConnectionString = """" _
+            + "Data Source=" + My.Settings.DBSource _
+            + ";Database=" + My.Settings.DBName _
+            + ";Port=" + My.Settings.MySqlPort _
+            + ";User ID=" + My.Settings.DBUserID _
+            + ";Password=" + My.Settings.DBPassword _
+            + ";Old Guids=True;Allow Zero Datetime=True;" _
+            + """"
+        SetIni("Gloebit", "GLBSpecificConnectionString", ConnectionString)
+
 
         SaveINI()
 

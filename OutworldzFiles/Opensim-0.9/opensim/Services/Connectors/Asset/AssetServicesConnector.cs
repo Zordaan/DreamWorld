@@ -34,7 +34,7 @@ using System.Reflection;
 using System.Timers;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Services.Interfaces;
 using OpenMetaverse;
 
@@ -135,8 +135,11 @@ namespace OpenSim.Services.Connectors
 
             for (int i = 0 ; i < 2 ; i++)
             {
-                m_fetchThreads[i] = new Thread(AssetRequestProcessor);
-                m_fetchThreads[i].Start();
+                m_fetchThreads[i] = WorkManager.StartThread(AssetRequestProcessor,
+                            String.Format("GetTextureWorker{0}", i),
+                            ThreadPriority.Normal,
+                            true,
+                            false);
             }
         }
 
@@ -349,8 +352,8 @@ namespace OpenSim.Services.Connectors
             public string id;
         }
 
-        private OpenMetaverse.BlockingQueue<QueuedAssetRequest> m_requestQueue =
-                new OpenMetaverse.BlockingQueue<QueuedAssetRequest>();
+        private OpenSim.Framework.BlockingQueue<QueuedAssetRequest> m_requestQueue =
+                new OpenSim.Framework.BlockingQueue<QueuedAssetRequest>();
 
         private void AssetRequestProcessor()
         {
@@ -358,8 +361,10 @@ namespace OpenSim.Services.Connectors
 
             while (true)
             {
-                r = m_requestQueue.Dequeue();
-
+                r = m_requestQueue.Dequeue(4500);
+                Watchdog.UpdateThread();
+                if(r== null)
+                    continue;
                 string uri = r.uri;
                 string id = r.id;
 

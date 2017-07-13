@@ -369,9 +369,9 @@ namespace OpenSim.Region.Framework.Scenes
         protected Vector3 m_lastPosition;
         protected Quaternion m_lastRotation;
         protected Vector3 m_lastVelocity;
-        protected Vector3 m_lastAcceleration;
+        protected Vector3 m_lastAcceleration; // acceleration is a derived var with high noise
         protected Vector3 m_lastAngularVelocity;
-        protected int m_lastUpdateSentTime;
+        protected double m_lastUpdateSentTime;
         protected float m_buoyancy = 0.0f;
         protected Vector3 m_force;
         protected Vector3 m_torque;
@@ -941,20 +941,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // If this is a root of a linkset, the real rotation is what the physics engine thinks.
                 // If not a root prim, the offset rotation is computed by SOG and is relative to the root.
                 if (ParentID == 0 && (Shape.PCode != 9 || Shape.State == 0) && actor != null)
-                {
-                    if (actor.Orientation.X != 0f || actor.Orientation.Y != 0f
-                        || actor.Orientation.Z != 0f || actor.Orientation.W != 0f)
-                    {
-                        m_rotationOffset = actor.Orientation;
-                    }
-                }
-
-//                float roll, pitch, yaw = 0;
-//                m_rotationOffset.GetEulerAngles(out roll, out pitch, out yaw);
-//
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT PART]: Got euler {0} for RotationOffset on {1} {2}",
-//                    new Vector3(roll, pitch, yaw), Name, LocalId);
+                    m_rotationOffset = actor.Orientation;
 
                 return m_rotationOffset;
             }
@@ -1116,8 +1103,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (m_text.Length > 255)
-                    return m_text.Substring(0, 254);
+                if (m_text.Length > 256) // yes > 254
+                    return m_text.Substring(0, 256);
                 return m_text;
             }
             set { m_text = value; }
@@ -1392,7 +1379,8 @@ namespace OpenSim.Region.Framework.Scenes
         public UUID LastOwnerID
         {
             get { return _lastOwnerID; }
-            set { _lastOwnerID = value; }
+            set {
+             _lastOwnerID = value; }
         }
 
         public UUID RezzerID
@@ -2579,6 +2567,8 @@ namespace OpenSim.Region.Framework.Scenes
                 AggregatedInnerOwnerPerms = owner & mask;
                 AggregatedInnerGroupPerms = group & mask;
                 AggregatedInnerEveryonePerms = everyone & mask;
+                if(ParentGroup != null)
+                    ParentGroup.InvalidateEffectivePerms();
             }
         }
 
@@ -2885,7 +2875,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void PhysicsCollision(EventArgs e)
         {
-            if (ParentGroup.Scene == null || ParentGroup.IsDeleted)
+            if (ParentGroup.Scene == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
                 return;
 
             // this a thread from physics ( heartbeat )
@@ -3247,7 +3237,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Schedule a terse update for this prim.  Terse updates only send position,
-        /// rotation, velocity and rotational velocity information.
+        /// rotation, velocity and rotational velocity information. WRONG!!!!
         /// </summary>
         public void ScheduleTerseUpdate()
         {
@@ -3306,21 +3296,6 @@ namespace OpenSim.Region.Framework.Scenes
                     sp.SendAttachmentUpdate(this, UpdateRequired.FULL);
                 }
             }
-
-/* this does nothing
-SendFullUpdateToClient(remoteClient, Position) ignores position parameter
-            if (IsRoot)
-            {
-                if (ParentGroup.IsAttachment)
-                {
-                    SendFullUpdateToClient(remoteClient, AttachedPos);
-                }
-                else
-                {
-                    SendFullUpdateToClient(remoteClient, AbsolutePosition);
-                }
-            }
-*/
             else
             {
                 SendFullUpdateToClient(remoteClient);
@@ -3341,7 +3316,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             m_lastVelocity = Velocity;
             m_lastAcceleration = Acceleration;
             m_lastAngularVelocity = AngularVelocity;
-            m_lastUpdateSentTime = Environment.TickCount;
+            m_lastUpdateSentTime = Util.GetTimeStampMS();
 
             ParentGroup.Scene.ForEachScenePresence(delegate(ScenePresence avatar)
             {
@@ -3360,7 +3335,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             m_lastVelocity = Velocity;
             m_lastAcceleration = Acceleration;
             m_lastAngularVelocity = AngularVelocity;
-            m_lastUpdateSentTime = Environment.TickCount;
+            m_lastUpdateSentTime = Util.GetTimeStampMS();
 
             if (ParentGroup.IsAttachment)
             {
@@ -3406,40 +3381,129 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             ParentGroup.Scene.StatsReporter.AddObjectUpdates(1);
         }
 
+
+        private const float ROTATION_TOLERANCE = 0.01f;
+        private const float VELOCITY_TOLERANCE = 0.1f; // terse update vel has low resolution
+        private const float POSITION_TOLERANCE = 0.05f; // I don't like this, but I suppose it's necessary
+        private const double TIME_MS_TOLERANCE = 200f; //llSetPos has a 200ms delay. This should NOT be 3 seconds.
+        
         /// <summary>
         /// Tell all the prims which have had updates scheduled
         /// </summary>
         public void SendScheduledUpdates()
-        {
-            const float ROTATION_TOLERANCE = 0.01f;
-            const float VELOCITY_TOLERANCE = 0.001f;
-            const float POSITION_TOLERANCE = 0.05f; // I don't like this, but I suppose it's necessary
-            const int TIME_MS_TOLERANCE = 200; //llSetPos has a 200ms delay. This should NOT be 3 seconds.
-
+        {           
             switch (UpdateFlag)
             {
-                case UpdateRequired.TERSE:
-                {
+                case UpdateRequired.NONE:
                     ClearUpdateSchedule();
-                    // Throw away duplicate or insignificant updates
-                    if (!RotationOffset.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
-                        !Acceleration.Equals(m_lastAcceleration) ||
-                        !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
-                        Velocity.ApproxEquals(Vector3.Zero, VELOCITY_TOLERANCE) ||
-                        !AngularVelocity.ApproxEquals(m_lastAngularVelocity, VELOCITY_TOLERANCE) ||
-                        !OffsetPosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
-                        Environment.TickCount - m_lastUpdateSentTime > TIME_MS_TOLERANCE)
+                    break;
+
+                case UpdateRequired.TERSE:
+
+                    ClearUpdateSchedule();
+                    bool needupdate = true;
+                    double now = Util.GetTimeStampMS();
+                    Vector3 curvel = Velocity;
+                    Vector3 curacc = Acceleration;
+                    Vector3 angvel = AngularVelocity;
+
+                    while(true) // just to avoid ugly goto
                     {
-                        SendTerseUpdateToAllClientsInternal();
+                        double elapsed = now - m_lastUpdateSentTime;
+                        if (elapsed > TIME_MS_TOLERANCE)
+                            break;
+
+                        if( Math.Abs(curacc.X - m_lastAcceleration.X) >  VELOCITY_TOLERANCE ||
+                            Math.Abs(curacc.Y - m_lastAcceleration.Y) >  VELOCITY_TOLERANCE ||
+                            Math.Abs(curacc.Z - m_lastAcceleration.Z) >  VELOCITY_TOLERANCE)
+                            break;
+
+                        // velocity change is also direction not only norm)
+                        if( Math.Abs(curvel.X - m_lastVelocity.X) >  VELOCITY_TOLERANCE ||
+                            Math.Abs(curvel.Y - m_lastVelocity.Y) >  VELOCITY_TOLERANCE ||
+                            Math.Abs(curvel.Z - m_lastVelocity.Z) >  VELOCITY_TOLERANCE)
+                            break;
+                        
+                        float vx = Math.Abs(curvel.X);
+                        if(vx > 128.0)
+                            break;
+                        float vy = Math.Abs(curvel.Y);
+                        if(vy > 128.0)
+                            break;
+                        float vz = Math.Abs(curvel.Z);
+                        if(vz > 128.0)
+                            break;
+
+                        if (
+                            vx <  VELOCITY_TOLERANCE &&
+                            vy <  VELOCITY_TOLERANCE &&
+                            vz <  VELOCITY_TOLERANCE
+                            )
+                        {
+                            if(!OffsetPosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
+                                break;
+                            
+                            if (vx <  1e-4 &&
+                                vy <  1e-4 &&
+                                vz <  1e-4 &&
+                                (
+                                    Math.Abs(m_lastVelocity.X) > 1e-4 ||
+                                    Math.Abs(m_lastVelocity.Y) > 1e-4 ||
+                                    Math.Abs(m_lastVelocity.Z) > 1e-4
+                                ))
+                                break;
+                        }
+
+                        if( Math.Abs(angvel.X - m_lastAngularVelocity.X) >  VELOCITY_TOLERANCE ||
+                            Math.Abs(angvel.Y - m_lastAngularVelocity.Y) >  VELOCITY_TOLERANCE ||
+                            Math.Abs(angvel.Z - m_lastAngularVelocity.Z) >  VELOCITY_TOLERANCE)
+                            break;
+
+                        // viewer interpolators have a limit of 128m/s
+                        float ax = Math.Abs(angvel.X);
+                        if(ax > 64.0)
+                            break;
+                        float ay = Math.Abs(angvel.Y);
+                        if(ay > 64.0)
+                            break;
+                        float az = Math.Abs(angvel.Z);
+                        if(az > 64.0)
+                            break;
+
+                        if (
+                            ax <  VELOCITY_TOLERANCE &&
+                            ay <  VELOCITY_TOLERANCE &&
+                            az <  VELOCITY_TOLERANCE &&
+                            !RotationOffset.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE)
+                            )
+                          break;
+
+                        needupdate = false;
+                        break;
+                    }
+
+                    if(needupdate)
+                    {
+
+                        // Update the "last" values
+                        m_lastPosition = OffsetPosition;
+                        m_lastRotation = RotationOffset;
+                        m_lastVelocity = curvel;
+                        m_lastAcceleration = curacc;
+                        m_lastAngularVelocity = angvel;
+                        m_lastUpdateSentTime = now;
+
+                        ParentGroup.Scene.ForEachClient(delegate(IClientAPI client)
+                        {
+                            SendTerseUpdateToClient(client);
+                        });
                     }
                     break;
-                }
+
                 case UpdateRequired.FULL:
-                {
                     ClearUpdateSchedule();
                     SendFullUpdateToAllClientsInternal();
                     break;
-                }
             }
         }
 
@@ -3452,13 +3516,15 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             if (ParentGroup == null || ParentGroup.Scene == null)
                 return;
 
+            ClearUpdateSchedule();
+
             // Update the "last" values
             m_lastPosition = OffsetPosition;
             m_lastRotation = RotationOffset;
             m_lastVelocity = Velocity;
             m_lastAcceleration = Acceleration;
             m_lastAngularVelocity = AngularVelocity;
-            m_lastUpdateSentTime = Environment.TickCount;
+            m_lastUpdateSentTime = Util.GetTimeStampMS();
 
             ParentGroup.Scene.ForEachClient(delegate(IClientAPI client)
             {
@@ -3471,13 +3537,15 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             if (ParentGroup == null || ParentGroup.Scene == null)
                 return;
 
+            ClearUpdateSchedule();
+
             // Update the "last" values
             m_lastPosition = OffsetPosition;
             m_lastRotation = RotationOffset;
             m_lastVelocity = Velocity;
             m_lastAcceleration = Acceleration;
             m_lastAngularVelocity = AngularVelocity;
-            m_lastUpdateSentTime = Environment.TickCount;
+            m_lastUpdateSentTime = Util.GetTimeStampMS();
 
             if (ParentGroup.IsAttachment)
             {
@@ -3728,7 +3796,18 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             bool hasDimple;
             bool hasProfileCut;
 
-            PrimType primType = GetPrimType();
+            if(Shape.SculptEntry)
+            {
+                if (Shape.SculptType != (byte)SculptType.Mesh)
+                    return 1; // sculp
+
+                //hack to detect new upload with faces data enconded on pbs              
+                if ((Shape.ProfileCurve & 0xf0) != (byte)HollowShape.Triangle)
+                    // old broken upload TODO
+                    return 8;
+            }
+
+            PrimType primType = GetPrimType(true);
             HasCutHollowDimpleProfileCut(primType, Shape, out hasCut, out hasHollow, out hasDimple, out hasProfileCut);
 
             switch (primType)
@@ -3772,13 +3851,6 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                     if (hasProfileCut) ret += 2;
                     if (hasHollow) ret += 1;
                     break;
-                case PrimType.SCULPT:
-                    // Special mesh handling
-                    if (Shape.SculptType == (byte)SculptType.Mesh)
-                        ret = 8; // if it's a mesh then max 8 faces
-                    else
-                        ret = 1; // if it's a sculpt then max 1 face
-                    break;
             }
 
             return ret;
@@ -3789,9 +3861,9 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
         /// </summary>
         /// <param name="primShape"></param>
         /// <returns></returns>
-        public PrimType GetPrimType()
+        public PrimType GetPrimType(bool ignoreSculpt = false)
         {
-            if (Shape.SculptEntry)
+            if (Shape.SculptEntry && !ignoreSculpt)
                 return PrimType.SCULPT;
 
             if ((Shape.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
@@ -4454,8 +4526,11 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             if (god)
                 baseMask = 0x7ffffff0;
 
-            // Are we the owner?
-            if ((AgentID == OwnerID) || god)
+            bool canChange = (AgentID == OwnerID) || god;
+            if(!canChange)
+                canChange = ParentGroup.Scene.Permissions.CanEditObjectPermissions(ParentGroup, AgentID);
+
+            if (canChange)
             {
                 switch (field)
                 {
@@ -5020,6 +5095,9 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                 if (newTex.FaceTextures[i] != null)
                     newFace = newTex.FaceTextures[i];
 
+                if (oldFace.TextureID != newFace.TextureID)
+                    changeFlags |= Changed.TEXTURE;
+
                 Color4 oldRGBA = oldFace.RGBA;
                 Color4 newRGBA = newFace.RGBA;
 
@@ -5028,9 +5106,6 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                     oldRGBA.B != newRGBA.B ||
                     oldRGBA.A != newRGBA.A)
                     changeFlags |= Changed.COLOR;
-
-                if (oldFace.TextureID != newFace.TextureID)
-                    changeFlags |= Changed.TEXTURE;
 
                 // Max change, skip the rest of testing
                 if (changeFlags == (Changed.TEXTURE | Changed.COLOR))
@@ -5057,16 +5132,10 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                 m_shape.TextureEntry = newTex.GetBytes();
                 if (changeFlags != 0)
                     TriggerScriptChangedEvent(changeFlags);
-                UpdateFlag = UpdateRequired.FULL;
                 ParentGroup.HasGroupChanged = true;
-
-                //This is madness..
-                //ParentGroup.ScheduleGroupForFullUpdate();
-                //This is sparta
                 ScheduleFullUpdate();
             }
         }
-
 
         internal void UpdatePhysicsSubscribedEvents()
         {
@@ -5282,9 +5351,9 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             // Export needs to be preserved in the base and everyone
             // mask, but removed in the owner mask as a next owner
             // can never change the export status
-            BaseMask &= NextOwnerMask | (uint)PermissionMask.Export;
+            BaseMask &= (NextOwnerMask | (uint)PermissionMask.Export);
             OwnerMask &= NextOwnerMask;
-            EveryoneMask &= NextOwnerMask | (uint)PermissionMask.Export;
+            EveryoneMask &= (NextOwnerMask | (uint)PermissionMask.Export);
             GroupMask = 0; // Giving an object zaps group permissions
 
             Inventory.ApplyNextOwnerPermissions();

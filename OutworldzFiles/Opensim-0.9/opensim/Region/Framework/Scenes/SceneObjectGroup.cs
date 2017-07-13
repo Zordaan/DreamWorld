@@ -807,6 +807,7 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (avtocrossInfo avinfo in avsToCross)
                 {
                     ScenePresence av = avinfo.av;
+                    av.IsInLocalTransit = true;
                     av.IsInTransit = true;
                     m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar {0} to {1}", av.Name, val);
 
@@ -1258,6 +1259,8 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_LoopSoundSlavePrims = value; }
         }
 
+        private double m_lastCollisionSoundMS;
+        
         /// <summary>
         /// The UUID for the region this object is in.
         /// </summary>
@@ -1335,7 +1338,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public SceneObjectGroup()
         {
-
+            m_lastCollisionSoundMS = Util.GetTimeStampMS() + 1000.0;
         }
 
         /// <summary>
@@ -2677,7 +2680,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (dupe.m_rootPart.PhysActor != null)
                     dupe.m_rootPart.PhysActor.Building = false; // tell physics to finish building
 
-                dupe.AggregateDeepPerms();
+                dupe.InvalidateDeepEffectivePerms();
 
                 dupe.HasGroupChanged = true;
                 dupe.AttachToBackup();
@@ -2943,7 +2946,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!m_scene.Permissions.BypassPermissions())
                 {
                     ApplyNextOwnerPermissions();
-                    AggregatePerms();
+                    InvalidateEffectivePerms();
                 }
             }
 
@@ -3605,7 +3608,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             InvalidBoundsRadius();
             InvalidatePartsLinkMaps();
-            objectGroup.AggregatePerms();
+            objectGroup.InvalidateEffectivePerms();
 
             if (sendEvents)
                 linkPart.TriggerScriptChangedEvent(Changed.LINK);
@@ -4128,20 +4131,6 @@ namespace OpenSim.Region.Framework.Scenes
             return Parts.Count();
         }
 
-        /// <summary>
-        /// Update the texture entry for this part
-        /// </summary>
-        /// <param name="localID"></param>
-        /// <param name="textureEntry"></param>
-        public void UpdateTextureEntry(uint localID, byte[] textureEntry)
-        {
-            SceneObjectPart part = GetPart(localID);
-            if (part != null)
-            {
-                part.UpdateTextureEntry(textureEntry);
-            }
-        }
-
         public void AdjustChildPrimPermissions(bool forceTaskInventoryPermissive)
         {
             uint newOwnerMask = (uint)(PermissionMask.All | PermissionMask.Export) & 0xfffffff0; // Mask folded bits
@@ -4163,7 +4152,7 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT GROUP]: RootPart.OwnerMask now {0} for {1} in {2}",
 //                (OpenMetaverse.PermissionMask)RootPart.OwnerMask, Name, Scene.Name);
-            AggregatePerms();
+            InvalidateEffectivePerms();
             RootPart.ScheduleFullUpdate();
         }
 
@@ -4188,7 +4177,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (SceneObjectPart part in Parts)
                     part.Inventory.ApplyGodPermissions(RootPart.BaseMask);
-                AggregatePerms();
+                InvalidateEffectivePerms();
             }
 
             HasGroupChanged = true;
@@ -5447,7 +5436,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 part.ResetOwnerChangeFlag();
             });
-            AggregatePerms();
+            InvalidateEffectivePerms();
         }
 
         // clear some references to easy cg
@@ -5541,7 +5530,33 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public bool CollisionSoundThrottled(int collisionSoundType)
+        {
+            double time = m_lastCollisionSoundMS;
+//            m_lastCollisionSoundMS = Util.GetTimeStampMS();
+//            time = m_lastCollisionSoundMS - time;
+            double now  = Util.GetTimeStampMS();
+            time = now - time;
+            switch (collisionSoundType)
+            {
+                case 0: // default sounds
+                case 2: // default sounds with volume set by script
+                    if(time < 300.0)                    
+                        return true;
+                    break;
+                case 1: // selected sound
+                    if(time < 200.0)                    
+                        return true;
+                    break;
+                default:
+                    break;
+            }
+            m_lastCollisionSoundMS = now;
+            return false;
+        }
+
         #endregion
     }
+
 
 }

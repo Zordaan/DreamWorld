@@ -481,7 +481,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     contactsPerCollision = physicsconfig.GetInt("contacts_per_collision", contactsPerCollision);
 
                     geomDefaultDensity = physicsconfig.GetFloat("geometry_default_density", geomDefaultDensity);
-                    bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", bodyFramesAutoDisable);
+//                    bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", bodyFramesAutoDisable);
 
                     physics_logging = physicsconfig.GetBoolean("physics_logging", false);
                     physics_logging_interval = physicsconfig.GetInt("physics_logging_interval", 0);
@@ -529,6 +529,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             SharedTmpcontact.surface.mode = comumContactFlags;
             SharedTmpcontact.surface.mu = 0;
             SharedTmpcontact.surface.bounce = 0;
+            SharedTmpcontact.surface.bounce_vel = 1.5f;
             SharedTmpcontact.surface.soft_cfm = comumContactCFM;
             SharedTmpcontact.surface.soft_erp = comumContactERP;
             SharedTmpcontact.surface.slip1 = comumContactSLIP;
@@ -727,8 +728,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (g1 == g2)
                     return; // Can't collide with yourself
 
-                if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
-                    return;
+//                if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
+//                    return;
                 /*
                 // debug
                                 PhysicsActor dp2;
@@ -951,8 +952,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             SharedTmpcontact.surface.bounce = bounce;
 
             d.ContactGeom altContact = new d.ContactGeom();
-            bool useAltcontact = false;
-            bool noskip = true;
+            bool useAltcontact;
+            bool noskip;
 
             if(dop1ava || dop2ava)
                 smoothMesh = false;
@@ -999,7 +1000,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         Joint = CreateContacJoint(ref altContact,smoothMesh);
                     else
                         Joint = CreateContacJoint(ref curContact,smoothMesh);
-
                     if (Joint == IntPtr.Zero)
                         break;
 
@@ -1176,6 +1176,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         aprim.clearSleeperCollisions();
                 }
             }
+
             lock (_activegroups)
             {
                 try

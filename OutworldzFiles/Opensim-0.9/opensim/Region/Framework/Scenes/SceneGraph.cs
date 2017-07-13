@@ -343,7 +343,7 @@ namespace OpenSim.Region.Framework.Scenes
                 sceneObject.ForceInventoryPersistence();
                 sceneObject.HasGroupChanged = true;
             }
-            sceneObject.AggregateDeepPerms();
+            sceneObject.InvalidateDeepEffectivePerms();
             return ret;
         }
 
@@ -388,18 +388,18 @@ namespace OpenSim.Region.Framework.Scenes
         public bool AddNewSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, Vector3? pos, Quaternion? rot, Vector3 vel)
         {
-            AddNewSceneObject(sceneObject, attachToBackup, false);
-
             if (pos != null)
                 sceneObject.AbsolutePosition = (Vector3)pos;
+
+            if (rot != null)
+                sceneObject.UpdateGroupRotationR((Quaternion)rot);
+
+            AddNewSceneObject(sceneObject, attachToBackup, false);
 
             if (sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim)
             {
                 sceneObject.ClearPartAttachmentData();
             }
-
-            if (rot != null)
-                sceneObject.UpdateGroupRotationR((Quaternion)rot);
 
             PhysicsActor pa = sceneObject.RootPart.PhysActor;
             if (pa != null && pa.IsPhysical && vel != Vector3.Zero)
@@ -549,6 +549,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // that are part of the Scene Object being removed
                 m_numTotalPrim -= grp.PrimCount;
 
+                bool isPh = (grp.RootPart.Flags & PrimFlags.Physics) == PrimFlags.Physics;
+                int nphysparts = 0;
                 // Go through all parts (primitives and meshes) of this Scene Object
                 foreach (SceneObjectPart part in grp.Parts)
                 {
@@ -559,10 +561,13 @@ namespace OpenSim.Region.Framework.Scenes
                         m_numMesh--;
                     else
                         m_numPrim--;
+
+                    if(isPh && part.PhysicsShapeType != (byte)PhysShapeType.none)
+                        nphysparts++;
                 }
 
-                if ((grp.RootPart.Flags & PrimFlags.Physics) == PrimFlags.Physics)
-                    RemovePhysicalPrim(grp.PrimCount);
+                if (nphysparts > 0 )
+                    RemovePhysicalPrim(nphysparts);
             }
 
             bool ret = Entities.Remove(uuid);
@@ -1599,13 +1604,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         protected internal void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient)
         {
-            SceneObjectGroup group = GetGroupByPrim(localID);
+            SceneObjectPart part = GetSceneObjectPart(localID);
+            if(part == null)
+                return;
 
-            if (group != null)
+            SceneObjectGroup group = part.ParentGroup;
+            if (group != null && !group.IsDeleted)
             {
                 if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
-                    group.UpdateTextureEntry(localID, texture);
+                    part.UpdateTextureEntry(texture);
                 }
             }
         }
@@ -1656,8 +1664,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (wantedPhys != group.UsesPhysics && remoteClient != null)
                     {
-                        remoteClient.SendAlertMessage("Object physics canceled because exceeds the limit of " +
-                            m_parentScene.m_linksetPhysCapacity + " physical prims with shape type not set to None");
+                        if(m_parentScene.m_linksetPhysCapacity != 0)
+                            remoteClient.SendAlertMessage("Object physics cancelled because it exceeds limits for physical prims, either size or number of primswith shape type not set to None");
+                        else
+                            remoteClient.SendAlertMessage("Object physics cancelled because it exceeds size limits for physical prims");
+                        
                         group.RootPart.ScheduleFullUpdate();
                     }
                 }
@@ -2089,7 +2100,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 child.TriggerScriptChangedEvent(Changed.OWNER);
                                 child.ApplyNextOwnerPermissions();
                             }
-                            copy.AggregatePerms();
+                            copy.InvalidateEffectivePerms();
                         }
                     }
 

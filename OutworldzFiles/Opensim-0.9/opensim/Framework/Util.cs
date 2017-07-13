@@ -79,7 +79,9 @@ namespace OpenSim.Framework
 
         FoldedMask = 0x0f,
 
-        //
+        FoldingShift = 13 ,  // number of bit shifts from normal perm to folded or back (same as Transfer shift below)
+                             // when doing as a block
+
         Transfer = 1 << 13, // 0x02000
         Modify = 1 << 14,   // 0x04000
         Copy = 1 << 15,     // 0x08000
@@ -90,7 +92,8 @@ namespace OpenSim.Framework
         // explicitly given
         All = 0x8e000,
         AllAndExport = 0x9e000,
-        AllEffective = 0x9e000
+        AllEffective = 0x9e000,
+        UnfoldedMask = 0x1e000
     }
 
     /// <summary>
@@ -425,6 +428,7 @@ namespace OpenSim.Framework
         {
             return regionCoord << 8;
         }
+
 
         public static bool checkServiceURI(string uristr, out string serviceURI)
         {
@@ -987,6 +991,8 @@ namespace OpenSim.Framework
             return output.ToString();
         }
 
+        private static ExpiringCache<string,IPAddress> dnscache = new ExpiringCache<string, IPAddress>();
+
         /// <summary>
         /// Converts a URL to a IPAddress
         /// </summary>
@@ -1004,38 +1010,128 @@ namespace OpenSim.Framework
         /// <returns>An IP address, or null</returns>
         public static IPAddress GetHostFromDNS(string dnsAddress)
         {
-            // Is it already a valid IP? No need to look it up.
-            IPAddress ipa;
-            if (IPAddress.TryParse(dnsAddress, out ipa))
-                return ipa;
+            if(String.IsNullOrWhiteSpace(dnsAddress))
+                return null;
 
-            IPAddress[] hosts = null;
+            IPAddress ia = null;
+            if(dnscache.TryGetValue(dnsAddress, out ia) && ia != null)
+            {
+                dnscache.AddOrUpdate(dnsAddress, ia, 300);
+                return ia;
+            }
 
-            // Not an IP, lookup required
+            ia = null;
+            // If it is already an IP, don't let GetHostEntry see it
+            if (IPAddress.TryParse(dnsAddress, out ia) && ia != null)
+            {
+                if (ia.Equals(IPAddress.Any) || ia.Equals(IPAddress.IPv6Any))
+                    return null;
+                dnscache.AddOrUpdate(dnsAddress, ia, 300);
+                return ia;
+            }
+
+            IPHostEntry IPH;
             try
             {
-                hosts = Dns.GetHostEntry(dnsAddress).AddressList;
+                IPH = Dns.GetHostEntry(dnsAddress);
             }
-            catch (Exception e)
+            catch // (SocketException e)
             {
-                m_log.WarnFormat("[UTIL]: An error occurred while resolving host name {0}, {1}", dnsAddress, e);
-
-                // Still going to throw the exception on for now, since this was what was happening in the first place
-                throw e;
+                return null;
             }
 
-            foreach (IPAddress host in hosts)
+            if(IPH == null || IPH.AddressList.Length == 0)
+                return null;
+
+            ia = null;
+            foreach (IPAddress Adr in IPH.AddressList)
             {
-                if (host.AddressFamily == AddressFamily.InterNetwork)
+                if (ia == null)
+                    ia = Adr;
+
+                if (Adr.AddressFamily == AddressFamily.InterNetwork)
                 {
-                    return host;
+                    ia = Adr;
+                    break;
+                }
+            }
+            if(ia != null)
+                dnscache.AddOrUpdate(dnsAddress, ia, 300);
+            return ia;
+        }
+
+        public static IPEndPoint getEndPoint(IPAddress ia, int port)
+        {
+            if(ia == null)
+                return null;
+
+            IPEndPoint newEP = null;
+            try
+            {
+                newEP = new IPEndPoint(ia, port);
+            }
+            catch
+            {
+                newEP = null;
+            }
+            return newEP;
+        }
+
+        public static IPEndPoint getEndPoint(string hostname, int port)
+        {
+            if(String.IsNullOrWhiteSpace(hostname))
+                return null;
+            
+            IPAddress ia = null;
+            if(dnscache.TryGetValue(hostname, out ia) && ia != null)
+            {
+                dnscache.AddOrUpdate(hostname, ia, 300);
+                return getEndPoint(ia, port);
+            }
+
+            ia = null;
+
+            // If it is already an IP, don't let GetHostEntry see it
+            if (IPAddress.TryParse(hostname, out ia) && ia != null)
+            {
+                if (ia.Equals(IPAddress.Any) || ia.Equals(IPAddress.IPv6Any))
+                    return null;
+
+                dnscache.AddOrUpdate(hostname, ia, 300);
+                return getEndPoint(ia, port);
+            }
+
+
+            IPHostEntry IPH;
+            try
+            {
+                IPH = Dns.GetHostEntry(hostname);
+            }
+            catch // (SocketException e)
+            {
+                return null;
+            }
+
+            if(IPH == null || IPH.AddressList.Length == 0)
+                return null;
+
+            ia = null;
+            foreach (IPAddress Adr in IPH.AddressList)
+            {
+                if (ia == null)
+                    ia = Adr;
+
+                if (Adr.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    ia = Adr;
+                    break;
                 }
             }
 
-            if (hosts.Length > 0)
-                return hosts[0];
+            if(ia != null)
+                dnscache.AddOrUpdate(hostname, ia, 300);
 
-            return null;
+            return getEndPoint(ia,port);
         }
 
         public static Uri GetURI(string protocol, string hostname, int port, string path)
@@ -2125,9 +2221,9 @@ namespace OpenSim.Framework
             // might have gotten an oversized array even after the string trim
             byte[] data = UTF8.GetBytes(str);
 
-            if (data.Length > 256)
+            if (data.Length > 255) //play safe
             {
-                int cut = 255;
+                int cut = 254;
                 if((data[cut] & 0x80 ) != 0 )
                     {
                     while(cut > 0 && (data[cut] & 0xc0) != 0xc0)
@@ -2229,7 +2325,7 @@ namespace OpenSim.Framework
 
             if (data.Length > MaxLength)
             {
-                int cut = MaxLength -1 ;
+                int cut = MaxLength - 1 ;
                 if((data[cut] & 0x80 ) != 0 )
                     {
                     while(cut > 0 && (data[cut] & 0xc0) != 0xc0)
@@ -2396,8 +2492,9 @@ namespace OpenSim.Framework
             public bool Running { get; set; }
             public bool Aborted { get; set; }
             private int started;
+            public bool DoTimeout;
 
-            public ThreadInfo(long threadFuncNum, string context)
+            public ThreadInfo(long threadFuncNum, string context, bool dotimeout = true)
             {
                 ThreadFuncNum = threadFuncNum;
                 this.context = context;
@@ -2405,6 +2502,7 @@ namespace OpenSim.Framework
                 Thread = null;
                 Running = false;
                 Aborted = false;
+                DoTimeout = dotimeout;
             }
 
             public void Started()
@@ -2475,7 +2573,7 @@ namespace OpenSim.Framework
             foreach (KeyValuePair<long, ThreadInfo> entry in activeThreads)
             {
                 ThreadInfo t = entry.Value;
-                if (t.Running && !t.Aborted && (t.Elapsed() >= THREAD_TIMEOUT))
+                if (t.DoTimeout && t.Running && !t.Aborted && (t.Elapsed() >= THREAD_TIMEOUT))
                 {
                     m_log.WarnFormat("Timeout in threadfunc {0} ({1}) {2}", t.ThreadFuncNum, t.Thread.Name, t.GetStackTrace());
                     t.Abort();
@@ -2516,10 +2614,10 @@ namespace OpenSim.Framework
             FireAndForget(callback, obj, null);
         }
 
-        public static void FireAndForget(System.Threading.WaitCallback callback, object obj, string context)
+        public static void FireAndForget(System.Threading.WaitCallback callback, object obj, string context, bool dotimeout = true)
         {
             Interlocked.Increment(ref numTotalThreadFuncsCalled);
-
+/*
             if (context != null)
             {
                 if (!m_fireAndForgetCallsMade.ContainsKey(context))
@@ -2532,13 +2630,13 @@ namespace OpenSim.Framework
                 else
                     m_fireAndForgetCallsInProgress[context]++;
             }
-
+*/
             WaitCallback realCallback;
 
             bool loggingEnabled = LogThreadPool > 0;
 
             long threadFuncNum = Interlocked.Increment(ref nextThreadFuncNum);
-            ThreadInfo threadInfo = new ThreadInfo(threadFuncNum, context);
+            ThreadInfo threadInfo = new ThreadInfo(threadFuncNum, context, dotimeout);
 
             if (FireAndForgetMethod == FireAndForgetMethod.RegressionTest)
             {
@@ -2549,8 +2647,8 @@ namespace OpenSim.Framework
                         Culture.SetCurrentCulture();
                         callback(o);
 
-                        if (context != null)
-                            m_fireAndForgetCallsInProgress[context]--;
+//                        if (context != null)
+//                            m_fireAndForgetCallsInProgress[context]--;
                     };
             }
             else
@@ -2576,7 +2674,6 @@ namespace OpenSim.Framework
                     }
                     catch (ThreadAbortException e)
                     {
-                        m_log.Error(string.Format("Aborted threadfunc {0} ", threadFuncNum), e);
                     }
                     catch (Exception e)
                     {
@@ -2591,8 +2688,8 @@ namespace OpenSim.Framework
                         if ((loggingEnabled || (threadFuncOverloadMode == 1)) && threadInfo.LogThread)
                             m_log.DebugFormat("Exit threadfunc {0} ({1})", threadFuncNum, FormatDuration(threadInfo.Elapsed()));
 
-                        if (context != null)
-                            m_fireAndForgetCallsInProgress[context]--;
+//                        if (context != null)
+//                            m_fireAndForgetCallsInProgress[context]--;
                     }
                 };
             }
@@ -2849,6 +2946,16 @@ namespace OpenSim.Framework
             return stpi;
         }
 
+        public static void StopThreadPool()
+        {
+            if (m_ThreadPool == null)
+                return;
+            SmartThreadPool pool = m_ThreadPool;
+            m_ThreadPool = null;
+
+            try { pool.Shutdown(); } catch {}          
+        }
+
         #endregion FireAndForget Threading Pattern
 
         /// <summary>
@@ -2862,6 +2969,7 @@ namespace OpenSim.Framework
         {
             return Environment.TickCount & EnvironmentTickCountMask;
         }
+
         const Int32 EnvironmentTickCountMask = 0x3fffffff;
 
         /// <summary>

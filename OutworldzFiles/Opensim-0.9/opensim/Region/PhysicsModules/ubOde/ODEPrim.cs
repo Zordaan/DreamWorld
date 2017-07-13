@@ -111,7 +111,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private int m_body_autodisable_frames;
         public int m_bodydisablecontrol = 0;
-        public int m_bodyMoveCoolDown = 0;
         private float m_gravmod = 1.0f;
 
         // Default we're a Geometry
@@ -166,6 +165,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private float m_density;
         private byte m_shapetype;
+        private byte m_fakeShapetype;
         public bool _zeroFlag;
         private bool m_lastUpdateSent;
 
@@ -421,7 +421,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 if (value.IsFinite())
                 {
-                     _parent_scene.m_meshWorker.ChangeActorPhysRep(this, _pbs, value, m_shapetype);
+                     _parent_scene.m_meshWorker.ChangeActorPhysRep(this, _pbs, value, m_fakeShapetype);
                 }
                 else
                 {
@@ -631,7 +631,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             set
             {
 //                AddChange(changes.Shape, value);
-                _parent_scene.m_meshWorker.ChangeActorPhysRep(this, value, _size, m_shapetype);
+                _parent_scene.m_meshWorker.ChangeActorPhysRep(this, value, _size, m_fakeShapetype);
             }
         }
 
@@ -639,11 +639,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             get
             {
-                return m_shapetype;
+                return m_fakeShapetype;
             }
             set
             {
-                m_shapetype = value;
+                m_fakeShapetype = value;
                _parent_scene.m_meshWorker.ChangeActorPhysRep(this, _pbs, _size, value);
             }
         }
@@ -1030,18 +1030,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 d.AllocateODEDataForThread(0);
                 if(Body != IntPtr.Zero)
                 {
-                    if(m_bodyMoveCoolDown >= 0)
-                    {
-                        d.Vector3 dtmp = d.BodyGetAngularVel(Body);
-                        m_rotationalVelocity.X = dtmp.X;
-                        m_rotationalVelocity.Y = dtmp.Y;
-                        m_rotationalVelocity.Z = dtmp.Z;
+                    d.Vector3 dtmp = d.BodyGetAngularVel(Body);
+                    m_rotationalVelocity.X = dtmp.X;
+                    m_rotationalVelocity.Y = dtmp.Y;
+                    m_rotationalVelocity.Z = dtmp.Z;
 
-                        dtmp = d.BodyGetLinearVel(Body);
-                        _velocity.X = dtmp.X;
-                        _velocity.Y = dtmp.Y;
-                        _velocity.Z = dtmp.Z;
-                    }
+                    dtmp = d.BodyGetLinearVel(Body);
+                    _velocity.X = dtmp.X;
+                    _velocity.Y = dtmp.Y;
+                    _velocity.Z = dtmp.Z;
+
                     d.BodySetLinearVel(Body, 0, 0, 0); // stop it
                     d.BodySetAngularVel(Body, 0, 0, 0);
                 }
@@ -1332,7 +1330,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             _triMeshData = IntPtr.Zero;
 
-            m_shapetype = _shapeType;
+            m_fakeShapetype = _shapeType;
 
             m_lastdoneSelected = false;
             m_isSelected = false;
@@ -1345,12 +1343,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             bounce = parent_scene.m_materialContactsData[(int)Material.Wood].bounce;
 
             m_building = true; // control must set this to false when done
-            m_bodyMoveCoolDown = 0;
 
             AddChange(changes.Add, null);
 
             // get basic mass parameters
-            ODEPhysRepData repData = _parent_scene.m_meshWorker.NewActorPhysRep(this, _pbs, _size, m_shapetype);
+            ODEPhysRepData repData = _parent_scene.m_meshWorker.NewActorPhysRep(this, _pbs, _size, _shapeType);
 
             primVolume = repData.volume;
             m_OBB = repData.OBB;
@@ -1850,8 +1847,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     ApplyCollisionCatFlags();
 
                     _zeroFlag = true;
+                    d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                     d.BodyEnable(Body);
-
                 }
             }
             resetCollisionAccounting();
@@ -2144,14 +2141,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
             else
             {
-            /*
                 d.BodySetAngularVel(Body, m_rotationalVelocity.X, m_rotationalVelocity.Y, m_rotationalVelocity.Z);
                 d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
-            */
+
                 _zeroFlag = false;
                 m_bodydisablecontrol = 0;
             }
-            m_bodyMoveCoolDown = -5;
             _parent_scene.addActiveGroups(this);
         }
 
@@ -2244,7 +2239,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
             m_mass = primMass;
             m_collisionscore = 0;
-            m_bodyMoveCoolDown = 0;
         }
 
         private void FixInertia(Vector3 NewPos,Quaternion newrot)
@@ -2906,8 +2900,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (Body != IntPtr.Zero && !m_disabled)
                     {
                         _zeroFlag = true;
+                        d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                         d.BodyEnable(Body);
-                        m_bodyMoveCoolDown = -5;
                     }
                 }
 //                else if (_parent != null)
@@ -2940,6 +2934,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         if (!d.BodyIsEnabled(Body))
                         {
                             _zeroFlag = true;
+                            d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                             d.BodyEnable(Body);
                         }
                     }
@@ -2950,12 +2945,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     {
                         d.GeomSetPosition(prim_geom, newPos.X, newPos.Y, newPos.Z);
                         _position = newPos;
-                        if (Body != IntPtr.Zero && !m_disabled)
-                            m_bodyMoveCoolDown = -5;
                     }
                     if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
                     {
                         _zeroFlag = true;
+                        d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                         d.BodyEnable(Body);
                     }
                 }
@@ -3016,12 +3010,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         {
                             if(m_angularlocks != 0)
                                 createAMotor(m_angularlocks);
-                            m_bodyMoveCoolDown = -5;
                         }
                     }
                     if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
                     {
                         _zeroFlag = true;
+                        d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                         d.BodyEnable(Body);
                     }
                 }
@@ -3080,6 +3074,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
                     {
                         _zeroFlag = true;
+                        d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                         d.BodyEnable(Body);
                     }
                 }
@@ -3172,7 +3167,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             _size = repData.size; //??
             _pbs = repData.pbs;
-            m_shapetype = repData.shapetype;
 
             m_mesh = repData.mesh;
 
@@ -3211,9 +3205,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 repData.size = _size;
                 repData.pbs = _pbs;
-                repData.shapetype = m_shapetype;
+                repData.shapetype = m_fakeShapetype;
                 _parent_scene.m_meshWorker.RequestMesh(repData);
             }
+            else
+                m_shapetype = repData.shapetype;
         }
 
         private void changePhysRepData(ODEPhysRepData repData)
@@ -3247,7 +3243,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             _size = repData.size;
             _pbs = repData.pbs;
-            m_shapetype = repData.shapetype;
 
             m_mesh = repData.mesh;
 
@@ -3298,9 +3293,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 repData.size = _size;
                 repData.pbs = _pbs;
-                repData.shapetype = m_shapetype;
+                repData.shapetype = m_fakeShapetype;
                 _parent_scene.m_meshWorker.RequestMesh(repData);
             }
+            else
+                m_shapetype = repData.shapetype;
         }
 
         private void changeFloatOnWater(bool newval)
@@ -3320,8 +3317,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (m_disabled)
                         enableBodySoft();
                     else if (!d.BodyIsEnabled(Body))
+                    {
+                        d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                         d.BodyEnable(Body);
-
+                    }
                 }
                 m_torque = newtorque;
             }
@@ -3331,7 +3330,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             m_force = force;
             if (!m_isSelected && !m_outbounds && Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
+            {
+                d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                 d.BodyEnable(Body);
+            }
         }
 
         private void changeAddForce(Vector3 theforce)
@@ -3347,7 +3349,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         if (m_disabled)
                             enableBodySoft();
                         else if (!d.BodyIsEnabled(Body))
+                        {
+                            d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                             d.BodyEnable(Body);
+                        }
                     }
                 }
                 m_collisionscore = 0;
@@ -3367,7 +3372,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         if (m_disabled)
                             enableBodySoft();
                         else if (!d.BodyIsEnabled(Body))
+                        {
+                            d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                             d.BodyEnable(Body);
+                        }                            
                     }
                 }
                 m_collisionscore = 0;
@@ -3390,9 +3398,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (m_disabled)
                         enableBodySoft();
                     else if (!d.BodyIsEnabled(Body))
+                    {
+                        d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                         d.BodyEnable(Body);
-                    if(m_bodyMoveCoolDown >= 0)
-                        d.BodySetLinearVel(Body, newVel.X, newVel.Y, newVel.Z);
+                    }
+                    d.BodySetLinearVel(Body, newVel.X, newVel.Y, newVel.Z);
                 }
                 //resetCollisionAccounting();
             }
@@ -3415,10 +3425,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (m_disabled)
                         enableBodySoft();
                     else if (!d.BodyIsEnabled(Body))
+                    {
+                        d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                         d.BodyEnable(Body);
-
-                    if(m_bodyMoveCoolDown >= 0);
-                        d.BodySetAngularVel(Body, newAngVel.X, newAngVel.Y, newAngVel.Z);
+                    }
+                    d.BodySetAngularVel(Body, newAngVel.X, newAngVel.Y, newAngVel.Z);
                 }
                 //resetCollisionAccounting();
             }
@@ -3569,26 +3580,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (!childPrim && m_isphysical && Body != IntPtr.Zero &&
                 !m_disabled && !m_isSelected && !m_building && !m_outbounds)
             {
-                if(m_bodyMoveCoolDown < 0)
-                {
-                    m_bodyMoveCoolDown++;
-//                    if(!IsColliding)
-//                        m_bodyCoolDown +=2;
-                    if(m_bodyMoveCoolDown >= 0)
-                    {
-                        d.BodySetAngularVel(Body, m_rotationalVelocity.X, m_rotationalVelocity.Y, m_rotationalVelocity.Z);
-                        d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
-                    }
-                    else
-                    {
-                        d.BodySetAngularVel(Body, 0, 0, 0);
-                        d.BodySetLinearVel(Body, 0, 0, 0);
-                        m_forceacc = Vector3.Zero;
-                        m_angularForceacc = Vector3.Zero;
-                        _zeroFlag = false;
-                        return;
-                    }
-                }
                 if (!d.BodyIsEnabled(Body))
                 {
                     // let vehicles sleep
@@ -3602,12 +3593,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     d.BodySetAngularVel(Body,0f,0f,0f);
                     d.BodySetLinearVel(Body,0f,0f,0f);
                     _zeroFlag = true;
+                    d.BodySetAutoDisableSteps(Body, 1);
                     d.BodyEnable(Body);
                     m_bodydisablecontrol = -4;
                 }
 
                 if(m_bodydisablecontrol < 0)
-                    m_bodydisablecontrol ++;
+                    m_bodydisablecontrol++;
 
                 d.Vector3 lpos = d.GeomGetPosition(prim_geom); // root position that is seem by rest of simulator
 
@@ -3772,13 +3764,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public void UpdatePositionAndVelocity(int frame)
         {
-            if (_parent == null && !m_disabled && !m_building && !m_outbounds && Body != IntPtr.Zero)
+            if (_parent == null && !m_isSelected && !m_disabled && !m_building && !m_outbounds && Body != IntPtr.Zero)
             {
-                bool bodyenabled = d.BodyIsEnabled(Body);
-
                 if(m_bodydisablecontrol < 0)
                     return;
 
+                bool bodyenabled = d.BodyIsEnabled(Body);
                 if (bodyenabled || !_zeroFlag)
                 {
                     bool lastZeroFlag = _zeroFlag;
@@ -3844,18 +3835,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         m_lastposition = _position;
                         m_lastorientation = _orientation;
 
-                        if(m_bodyMoveCoolDown >= 0)
-                        {
-                            d.Vector3 dtmp = d.BodyGetAngularVel(Body);
-                            m_rotationalVelocity.X = dtmp.X;
-                            m_rotationalVelocity.Y = dtmp.Y;
-                            m_rotationalVelocity.Z = dtmp.Z;
+                        d.Vector3 dtmp = d.BodyGetAngularVel(Body);
+                        m_rotationalVelocity.X = dtmp.X;
+                        m_rotationalVelocity.Y = dtmp.Y;
+                        m_rotationalVelocity.Z = dtmp.Z;
 
-                            dtmp = d.BodyGetLinearVel(Body);
-                            _velocity.X = dtmp.X;
-                            _velocity.Y = dtmp.Y;
-                            _velocity.Z = dtmp.Z;
-                        }
+                        dtmp = d.BodyGetLinearVel(Body);
+                        _velocity.X = dtmp.X;
+                        _velocity.Y = dtmp.Y;
+                        _velocity.Z = dtmp.Z;
 
                         d.BodySetLinearVel(Body, 0, 0, 0); // stop it
                         d.BodySetAngularVel(Body, 0, 0, 0);
@@ -3880,33 +3868,30 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
                     else
                     {
-                        if(m_bodyMoveCoolDown >= 0)
+                        float poserror;
+                        float angerror;
+                        if(_zeroFlag)
                         {
-                            float poserror;
-                            float angerror;
-                            if(_zeroFlag)
-                            {
-                                poserror = 0.01f;
-                                angerror = 0.001f;
-                            }
-                            else
-                            {
-                                poserror = 0.005f;
-                                angerror = 0.0005f;
-                            }
-
-                            if (
-                                (Math.Abs(_position.X - lpos.X) < poserror)
-                                && (Math.Abs(_position.Y - lpos.Y) < poserror)
-                                && (Math.Abs(_position.Z - lpos.Z) < poserror)
-                                && (Math.Abs(_orientation.X - ori.X) < angerror)
-                                && (Math.Abs(_orientation.Y - ori.Y) < angerror)
-                                && (Math.Abs(_orientation.Z - ori.Z) < angerror)  // ignore W
-                                )
-                                _zeroFlag = true;
-                            else
-                                _zeroFlag = false;
+                            poserror = 0.01f;
+                            angerror = 0.001f;
                         }
+                        else
+                        {
+                            poserror = 0.005f;
+                            angerror = 0.0005f;
+                        }
+
+                        if (
+                            (Math.Abs(_position.X - lpos.X) < poserror)
+                            && (Math.Abs(_position.Y - lpos.Y) < poserror)
+                            && (Math.Abs(_position.Z - lpos.Z) < poserror)
+                            && (Math.Abs(_orientation.X - ori.X) < angerror)
+                            && (Math.Abs(_orientation.Y - ori.Y) < angerror)
+                            && (Math.Abs(_orientation.Z - ori.Z) < angerror)  // ignore W
+                            )
+                            _zeroFlag = true;
+                        else
+                            _zeroFlag = false;
                     }
 
                     // update position
@@ -3928,53 +3913,50 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                          // disable interpolators
                         _velocity = Vector3.Zero;
                         m_acceleration = Vector3.Zero;
-                         m_rotationalVelocity = Vector3.Zero;
+                        m_rotationalVelocity = Vector3.Zero;
                     }
                     else
                     {
-                        if(m_bodyMoveCoolDown >= 0)
+                        d.Vector3 vel = d.BodyGetLinearVel(Body);
+
+                        m_acceleration = _velocity;
+
+                        if ((Math.Abs(vel.X) < 0.005f) &&
+                            (Math.Abs(vel.Y) < 0.005f) &&
+                            (Math.Abs(vel.Z) < 0.005f))
                         {
-                            d.Vector3 vel = d.BodyGetLinearVel(Body);
+                            _velocity = Vector3.Zero;
+                            float t = -m_invTimeStep;
+                            m_acceleration = m_acceleration * t;
+                        }
+                        else
+                        {
+                            _velocity.X = vel.X;
+                            _velocity.Y = vel.Y;
+                            _velocity.Z = vel.Z;
+                            m_acceleration = (_velocity - m_acceleration) * m_invTimeStep;
+                        }
 
-                            m_acceleration = _velocity;
+                        if ((Math.Abs(m_acceleration.X) < 0.01f) &&
+                            (Math.Abs(m_acceleration.Y) < 0.01f) &&
+                            (Math.Abs(m_acceleration.Z) < 0.01f))
+                        {
+                            m_acceleration = Vector3.Zero;
+                        }
 
-                            if ((Math.Abs(vel.X) < 0.005f) &&
-                                (Math.Abs(vel.Y) < 0.005f) &&
-                                (Math.Abs(vel.Z) < 0.005f))
-                            {
-                                _velocity = Vector3.Zero;
-                                float t = -m_invTimeStep;
-                                m_acceleration = m_acceleration * t;
-                            }
-                            else
-                            {
-                                _velocity.X = vel.X;
-                                _velocity.Y = vel.Y;
-                                _velocity.Z = vel.Z;
-                                m_acceleration = (_velocity - m_acceleration) * m_invTimeStep;
-                            }
-
-                            if ((Math.Abs(m_acceleration.X) < 0.01f) &&
-                                (Math.Abs(m_acceleration.Y) < 0.01f) &&
-                                (Math.Abs(m_acceleration.Z) < 0.01f))
-                            {
-                                m_acceleration = Vector3.Zero;
-                            }
-
-                            vel = d.BodyGetAngularVel(Body);
-                            if ((Math.Abs(vel.X) < 0.0001) &&
-                               (Math.Abs(vel.Y) < 0.0001) &&
-                               (Math.Abs(vel.Z) < 0.0001)
-                               )
-                            {
-                                m_rotationalVelocity = Vector3.Zero;
-                            }
-                            else
-                            {
-                                m_rotationalVelocity.X = vel.X;
-                                m_rotationalVelocity.Y = vel.Y;
-                                m_rotationalVelocity.Z = vel.Z;
-                            }
+                        vel = d.BodyGetAngularVel(Body);
+                        if ((Math.Abs(vel.X) < 0.0001) &&
+                            (Math.Abs(vel.Y) < 0.0001) &&
+                            (Math.Abs(vel.Z) < 0.0001)
+                            )
+                        {
+                            m_rotationalVelocity = Vector3.Zero;
+                        }
+                        else
+                        {
+                            m_rotationalVelocity.X = vel.X;
+                            m_rotationalVelocity.Y = vel.Y;
+                            m_rotationalVelocity.Z = vel.Z;
                         }
                     }
 
