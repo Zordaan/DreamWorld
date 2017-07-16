@@ -326,8 +326,8 @@ namespace OpenSim.Region.Framework.Scenes
                         newMotion.m_selected = true;
                 }
 
-                newMotion.m_timerStopped = false;
-                newMotion.m_running = true;
+//                newMotion.m_timerStopped = false;
+//                newMotion.m_running = true;
                 newMotion.m_isCrossing = false;
                 newMotion.m_waitingCrossing = false;
             }
@@ -483,9 +483,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_group.RootPart.Velocity = Vector3.Zero;
             m_group.RootPart.AngularVelocity = Vector3.Zero;
-            m_group.SendGroupRootTerseUpdate();
-//            m_group.RootPart.ScheduleTerseUpdate();
+//            m_group.SendGroupRootTerseUpdate();
+            m_group.RootPart.ScheduleTerseUpdate();
             m_frames.Clear();
+            m_group.Scene.EventManager.TriggerMovingEndEvent(m_group.RootPart.LocalId);
         }
 
         public void Pause()
@@ -496,8 +497,9 @@ namespace OpenSim.Region.Framework.Scenes
             m_group.RootPart.Velocity = Vector3.Zero;
             m_group.RootPart.AngularVelocity = Vector3.Zero;
             m_skippedUpdates = 1000;
-            m_group.SendGroupRootTerseUpdate();
-//            m_group.RootPart.ScheduleTerseUpdate();
+//            m_group.SendGroupRootTerseUpdate();
+            m_group.RootPart.ScheduleTerseUpdate();
+            m_group.Scene.EventManager.TriggerMovingEndEvent(m_group.RootPart.LocalId);
         }
 
         public void Suspend()
@@ -644,8 +646,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_group.RootPart.Velocity = Vector3.Zero;
             m_group.RootPart.AngularVelocity = Vector3.Zero;
-            m_group.SendGroupRootTerseUpdate();
- 
+//            m_group.SendGroupRootTerseUpdate();
+            m_group.RootPart.ScheduleTerseUpdate();
             m_frames.Clear();
         }
 
@@ -673,7 +675,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_group.RootPart.Velocity = Vector3.Zero;
                     m_skippedUpdates = 1000;
-                    m_group.SendGroupRootTerseUpdate();
+//                    m_group.SendGroupRootTerseUpdate();
+                    m_group.RootPart.ScheduleTerseUpdate();
                 }
                 return;
             }
@@ -752,7 +755,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                bool lastSteps = remainingSteps < 4;
+//                bool lastSteps = remainingSteps < 4;
+        
                 Vector3 currentPosition = m_group.AbsolutePosition;
                 Vector3 motionThisFrame = (Vector3)m_currentFrame.Position - currentPosition;
                 motionThisFrame /= (float)remainingSteps;
@@ -773,13 +777,13 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_group.AbsolutePosition = m_nextPosition;
-                if(lastSteps)
-                    m_group.RootPart.Velocity = Vector3.Zero;
-                else
+//                if(lastSteps)
+//                    m_group.RootPart.Velocity = Vector3.Zero;
+//                else
                     m_group.RootPart.Velocity = m_currentVel;
 
                 if(!update && (
-                    lastSteps ||
+//                    lastSteps ||
                     m_skippedUpdates * tickDuration > 0.5 ||
                     Math.Abs(m_nextPosition.X - currentPosition.X) > 5f ||
                     Math.Abs(m_nextPosition.Y - currentPosition.Y) > 5f ||
@@ -797,7 +801,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_lastPosUpdate = m_nextPosition;
                 m_lastRotationUpdate = m_group.GroupRotation; 
                 m_skippedUpdates = 0;
-                m_group.SendGroupRootTerseUpdate();
+//                m_group.SendGroupRootTerseUpdate();
+                m_group.RootPart.ScheduleTerseUpdate();
             }
         }
 
@@ -842,8 +847,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_group.RootPart.Velocity = Vector3.Zero;
                 m_skippedUpdates = 1000;
-                m_group.SendGroupRootTerseUpdate();
-//                m_group.RootPart.ScheduleTerseUpdate();
+//                m_group.SendGroupRootTerseUpdate();
+                m_group.RootPart.ScheduleTerseUpdate();
             }
         }
 
@@ -855,8 +860,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_group.RootPart.Velocity = Vector3.Zero;
                 m_skippedUpdates = 1000;
-                m_group.SendGroupRootTerseUpdate();
-//                m_group.RootPart.ScheduleTerseUpdate();
+//                m_group.SendGroupRootTerseUpdate();
+                m_group.RootPart.ScheduleTerseUpdate();
 
                 if (m_running)
                 {
